@@ -1,0 +1,40 @@
+name: Deploy para Ixovet (cPanel)
+
+# Roda sempre que houver push na branch main,
+# e também pode ser disparado manualmente pela aba "Actions" do GitHub.
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Publicar site no cPanel
+    runs-on: ubuntu-latest
+    steps:
+      - name: Disparar deploy no cPanel
+        id: deploy
+        uses: pinkasey/cpanel-deploy-action@v1.2.3
+        with:
+          # URL do cPanel (com https:// e porta 2083).
+          # Configurado como secret para não expor o domínio do painel.
+          hostname: ${{ secrets.CPANEL_HOSTNAME }}
+
+          # Usuário do cPanel — o mesmo usado para criar o API token.
+          cpanel_username: ${{ secrets.CPANEL_USERNAME }}
+
+          # Token gerado em cPanel → Manage API Tokens.
+          cpanel_token: ${{ secrets.CPANEL_TOKEN }}
+
+          # Caminho absoluto do repositório DENTRO do cPanel
+          # (não no GitHub). Ex.: /home/usuario/repositories/ixovet
+          repository_root: ${{ secrets.CPANEL_REPO_ROOT }}
+
+          # Atualiza o repositório no cPanel antes de fazer o deploy
+          # (faz git pull da branch escolhida).
+          updateRepository: true
+          branch: main
+
+      - name: Exibir duração do deploy
+        run: echo "Deploy concluído em ${{ steps.deploy.outputs.duration }} ms"

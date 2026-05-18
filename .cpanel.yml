@@ -1,0 +1,5 @@
+---
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home/ixovetdo/dataroom.ixovet.com.br/
+    - /bin/cp -R index.html $DEPLOYPATH
