@@ -1,0 +1,2703 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Data Room Admin — IXOVET</title>
+<style>
+:root{
+  --bg:#f3ede3;
+  --bg-soft:#faf6ef;
+  --surface:#fffdf9;
+  --surface-soft:#f8f1e6;
+  --ink:#17322b;
+  --ink-soft:#2a4a40;
+  --muted:#66756c;
+  --line:#d8cdbd;
+  --line-strong:#c4b69f;
+  --brand:#0f766e;
+  --brand-dark:#0b5b55;
+  --accent:#c96d42;
+  --accent-dark:#ab5a33;
+  --corp:#0c8ce9;
+  --corp-dark:#0a6fb8;
+  --good:#1d7a4a;
+  --bad:#b94c45;
+  --warn:#ad7c1d;
+  --shadow:0 16px 40px rgba(23,50,43,.08);
+  --shadow-strong:0 24px 60px rgba(23,50,43,.18);
+  --radius-xl:28px;
+  --radius-lg:20px;
+  --radius-md:14px;
+  --radius-sm:10px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;
+  color:var(--ink);
+  background:
+    radial-gradient(circle at top left, rgba(12,140,233,.10), transparent 28%),
+    radial-gradient(circle at top right, rgba(15,118,110,.10), transparent 24%),
+    linear-gradient(180deg, #f7f2ea 0%, #f3ede3 55%, #ece2d5 100%);
+  font-family:"Candara","Trebuchet MS",sans-serif;
+  min-height:100vh;
+}
+button,input,select,textarea{font:inherit;color:inherit}
+
+.app{max-width:1500px; margin:0 auto; padding:20px;}
+
+/* ===== Hero / Topbar ===== */
+.hero{
+  background:linear-gradient(135deg, rgba(23,50,43,.97), rgba(15,118,110,.92) 55%, rgba(12,140,233,.85));
+  color:#f6f2e9;
+  border-radius:var(--radius-xl);
+  padding:24px 28px;
+  box-shadow:var(--shadow);
+  position:relative;
+  overflow:hidden;
+}
+.hero::after{
+  content:"";
+  position:absolute; right:-80px; top:-110px;
+  width:260px; height:260px; border-radius:50%;
+  background:rgba(255,255,255,.07);
+}
+.hero-grid{
+  position:relative; z-index:1;
+  display:grid;
+  grid-template-columns:1.4fr 1fr;
+  gap:18px;
+  align-items:start;
+}
+.eyebrow{
+  display:inline-flex; align-items:center; gap:8px;
+  font-size:11px; letter-spacing:.18em; text-transform:uppercase;
+  color:#c8e6e0; margin-bottom:8px;
+}
+.eyebrow .dot{
+  width:8px; height:8px; border-radius:50%;
+  background:var(--corp); box-shadow:0 0 12px var(--corp);
+}
+.hero h1{
+  margin:0; font-size:28px; line-height:1.05; letter-spacing:-.02em;
+  font-family:"Palatino Linotype","Book Antiqua",serif;
+}
+.hero p{margin:6px 0 0; color:#dfeee9; font-size:14px; max-width:580px}
+.hero-tools{display:flex; flex-wrap:wrap; gap:8px; margin-top:14px}
+
+.btn{
+  border:1px solid transparent;
+  border-radius:999px;
+  padding:10px 16px;
+  cursor:pointer;
+  transition:transform .18s ease, background .18s ease, border-color .18s ease, opacity .18s ease;
+  font-size:14px;
+  display:inline-flex; align-items:center; gap:8px;
+}
+.btn:hover{transform:translateY(-1px)}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.btn-sm{padding:7px 12px; font-size:12.5px}
+.btn-xs{padding:5px 10px; font-size:12px}
+.btn-primary{background:var(--brand);color:#fff;border-color:var(--brand)}
+.btn-primary:hover:not(:disabled){background:var(--brand-dark)}
+.btn-corp{background:var(--corp);color:#fff;border-color:var(--corp)}
+.btn-corp:hover:not(:disabled){background:var(--corp-dark)}
+.btn-accent{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn-accent:hover:not(:disabled){background:var(--accent-dark)}
+.btn-ghost{background:transparent;color:var(--ink-soft);border-color:var(--line)}
+.btn-ghost:hover{background:var(--surface-soft)}
+.btn-soft{background:var(--surface-soft);color:var(--ink);border-color:var(--line)}
+.btn-danger{background:var(--bad); color:#fff; border-color:var(--bad)}
+.btn-danger:hover:not(:disabled){background:#9a3e38}
+.btn-on-hero{background:rgba(255,255,255,.12);color:#fff;border-color:rgba(255,255,255,.22)}
+.btn-on-hero:hover{background:rgba(255,255,255,.20)}
+
+.summary{
+  background:rgba(255,255,255,.10);
+  backdrop-filter:blur(6px);
+  border:1px solid rgba(255,255,255,.18);
+  border-radius:var(--radius-lg);
+  padding:14px 16px;
+  font-size:13px;
+}
+.summary .row{display:flex; justify-content:space-between; padding:3px 0}
+.summary .row span:first-child{color:#c8e6e0; letter-spacing:.05em; text-transform:uppercase; font-size:10.5px}
+.summary .row span:last-child{color:#fff; font-weight:600}
+
+/* ===== Tabs ===== */
+.tabs{
+  display:flex; flex-wrap:wrap; gap:6px;
+  margin:18px 0 14px;
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-radius:999px;
+  padding:6px;
+  box-shadow:var(--shadow);
+  width:fit-content;
+}
+.tab{
+  border:1px solid transparent;
+  border-radius:999px;
+  padding:8px 16px;
+  cursor:pointer;
+  font-size:13.5px;
+  color:var(--ink-soft);
+  background:transparent;
+  transition:all .15s ease;
+}
+.tab:hover{background:var(--surface-soft)}
+.tab.active{
+  background:var(--brand);
+  color:#fff;
+  border-color:var(--brand);
+}
+
+.panel{display:none}
+.panel.active{display:block}
+
+/* ===== KPIs ===== */
+.kpis{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:14px;
+  margin-top:6px;
+}
+.kpi{
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-radius:var(--radius-lg);
+  padding:16px 18px;
+  box-shadow:var(--shadow);
+}
+.kpi .label{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.kpi .value{font-size:26px;font-weight:600;margin-top:6px;color:var(--ink);font-family:"Palatino Linotype","Book Antiqua",serif}
+.kpi.brand .value{color:var(--brand)}
+.kpi.corp .value{color:var(--corp)}
+.kpi.accent .value{color:var(--accent)}
+.kpi .sub{font-size:12px;color:var(--muted);margin-top:4px}
+
+/* ===== Cards/Tables ===== */
+.section-card{
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-radius:var(--radius-lg);
+  box-shadow:var(--shadow);
+  margin-top:16px;
+  overflow:hidden;
+}
+.section-head{
+  padding:14px 20px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  background:var(--surface-soft);
+  border-bottom:1px solid var(--line);
+  flex-wrap:wrap;
+  gap:10px;
+}
+.section-head h3{margin:0;font-size:16px;font-family:"Palatino Linotype","Book Antiqua",serif}
+.section-head .sub{font-size:12.5px; color:var(--muted)}
+.section-body{padding:14px 20px 18px}
+
+.table{
+  width:100%;
+  border-collapse:separate;
+  border-spacing:0;
+  font-size:13.5px;
+}
+.table th, .table td{
+  padding:10px 12px;
+  text-align:left;
+  border-bottom:1px solid var(--line);
+  vertical-align:top;
+}
+.table th{
+  font-size:11px;
+  text-transform:uppercase;
+  letter-spacing:.1em;
+  color:var(--muted);
+  background:var(--bg-soft);
+}
+.table tr:last-child td{border-bottom:none}
+.table tr:hover td{background:var(--bg-soft)}
+
+.badge{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:3px 8px;border-radius:999px;font-size:11px;letter-spacing:.04em;
+  background:var(--surface);border:1px solid var(--line);color:var(--ink-soft);
+}
+.badge.corp{background:rgba(12,140,233,.12);color:var(--corp-dark);border-color:rgba(12,140,233,.30)}
+.badge.brand{background:rgba(15,118,110,.10);color:var(--brand-dark);border-color:rgba(15,118,110,.25)}
+.badge.accent{background:rgba(201,109,66,.12);color:var(--accent-dark);border-color:rgba(201,109,66,.30)}
+.badge.good{background:rgba(29,122,74,.12);color:var(--good);border-color:rgba(29,122,74,.30)}
+.badge.bad{background:rgba(185,76,69,.12);color:var(--bad);border-color:rgba(185,76,69,.30)}
+.badge.warn{background:rgba(173,124,29,.12);color:var(--warn);border-color:rgba(173,124,29,.30)}
+
+.row-actions{display:flex;gap:6px;flex-wrap:wrap}
+
+/* ===== Toolbar dentro do panel ===== */
+.panel-toolbar{
+  display:flex;
+  gap:10px;
+  align-items:center;
+  flex-wrap:wrap;
+  margin-bottom:10px;
+}
+.search{
+  flex:1;
+  min-width:240px;
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-radius:999px;
+  padding:8px 14px;
+  display:flex; gap:8px; align-items:center;
+}
+.search input{
+  border:none; outline:none; background:transparent; width:100%; font-size:14px;
+}
+
+/* ===== Form fields ===== */
+.field{margin-bottom:12px}
+.field label{
+  display:block; font-size:11.5px; letter-spacing:.06em;
+  text-transform:uppercase; color:var(--muted); margin-bottom:4px;
+}
+.field input, .field textarea, .field select{
+  width:100%; padding:10px 12px;
+  border:1px solid var(--line); border-radius:var(--radius-sm);
+  background:var(--surface); font-size:14px;
+  outline:none; transition:border-color .15s ease, box-shadow .15s ease;
+}
+.field input:focus, .field textarea:focus, .field select:focus{
+  border-color:var(--brand);
+  box-shadow:0 0 0 3px rgba(15,118,110,.12);
+}
+.field textarea{min-height:80px; resize:vertical}
+.form-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+.form-grid.three{grid-template-columns:1fr 1fr 1fr}
+@media(max-width:640px){
+  .form-grid, .form-grid.three{grid-template-columns:1fr}
+}
+
+/* ===== Modal ===== */
+.modal-overlay{
+  position:fixed; inset:0;
+  background:rgba(23,50,43,.55);
+  display:none; align-items:center; justify-content:center;
+  z-index:200; padding:20px;
+  backdrop-filter:blur(3px);
+}
+.modal-overlay.active{display:flex}
+.modal{
+  background:var(--surface);
+  border-radius:var(--radius-xl);
+  border:1px solid var(--line);
+  max-width:680px; width:100%;
+  max-height:92vh; overflow:auto;
+  box-shadow:var(--shadow-strong);
+}
+.modal.lg{max-width:880px}
+.modal-head{
+  padding:16px 22px;
+  display:flex; justify-content:space-between; align-items:center;
+  border-bottom:1px solid var(--line);
+  background:var(--surface-soft);
+  border-radius:var(--radius-xl) var(--radius-xl) 0 0;
+}
+.modal-head h3{margin:0; font-size:17px; font-family:"Palatino Linotype","Book Antiqua",serif}
+.modal-body{padding:16px 22px}
+.modal-foot{padding:14px 22px; border-top:1px solid var(--line); display:flex; justify-content:flex-end; gap:10px}
+
+/* ===== File picker ===== */
+.file-drop{
+  border:2px dashed var(--line-strong);
+  border-radius:var(--radius-md);
+  padding:18px;
+  text-align:center;
+  background:var(--bg-soft);
+  cursor:pointer;
+  transition:border-color .15s ease, background .15s ease;
+}
+.file-drop:hover{border-color:var(--brand); background:var(--surface-soft)}
+.file-drop.has-file{border-style:solid; border-color:var(--brand)}
+
+/* ===== Toasts ===== */
+.toasts{
+  position:fixed;
+  bottom:18px; left:50%; transform:translateX(-50%);
+  display:flex; flex-direction:column; gap:8px;
+  z-index:300;
+  pointer-events:none;
+}
+.toast{
+  background:var(--ink);
+  color:#fff;
+  padding:10px 16px;
+  border-radius:var(--radius-md);
+  box-shadow:var(--shadow-strong);
+  font-size:13.5px;
+  pointer-events:auto;
+  animation:fadein .2s ease;
+}
+.toast.good{background:var(--good)}
+.toast.bad{background:var(--bad)}
+.toast.warn{background:var(--warn)}
+@keyframes fadein{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* ===== Filtros eventos ===== */
+.event-row{
+  display:grid;
+  grid-template-columns:140px 110px 1fr;
+  gap:10px;
+  padding:10px 12px;
+  border-bottom:1px solid var(--line);
+  font-size:13.5px;
+  align-items:center;
+}
+.event-row:last-child{border-bottom:none}
+.event-row .when{font-size:12.5px; color:var(--muted)}
+.event-row .who{font-weight:600}
+.event-row .what{color:var(--ink-soft)}
+
+/* ===== Versions list ===== */
+.version-item{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:10px 14px;
+  background:var(--bg-soft);
+  border:1px solid var(--line);
+  border-radius:var(--radius-sm);
+  gap:10px; flex-wrap:wrap;
+  margin-bottom:8px;
+}
+.version-item .v-meta{font-size:12.5px; color:var(--muted)}
+.version-item .v-title{font-size:14px; font-weight:600}
+
+/* ===== Storage usage bar ===== */
+.usage-bar{
+  height:8px;
+  border-radius:4px;
+  background:var(--line);
+  overflow:hidden;
+  margin-top:6px;
+}
+.usage-bar > div{
+  height:100%;
+  background:var(--brand);
+  transition:width .25s ease, background .25s ease;
+}
+
+/* ===== Watermark ===== */
+.watermark{
+  position:fixed;
+  bottom:14px;
+  right:18px;
+  font-size:11px;
+  letter-spacing:.2em;
+  text-transform:uppercase;
+  color:var(--muted);
+  opacity:.6;
+  z-index:50;
+  pointer-events:none;
+  user-select:none;
+}
+
+@media (max-width:880px){
+  .hero-grid{grid-template-columns:1fr}
+  .kpis{grid-template-columns:repeat(2,1fr)}
+  .event-row{grid-template-columns:1fr; gap:4px}
+}
+</style>
+</head>
+<body>
+
+<main class="app">
+  <section class="hero">
+    <div class="hero-grid">
+      <div>
+        <div class="eyebrow"><span class="dot"></span> Painel administrativo</div>
+        <h1 id="heroTitle">IXOVET — Data Room (Admin)</h1>
+        <p>Gerencie documentos, versões, investidores autorizados, NDA e histórico de acessos. Os dados são compartilhados com o painel do investidor (mesma origem).</p>
+        <div class="hero-tools">
+          <button class="btn btn-on-hero btn-sm" id="btnExport">Exportar JSON</button>
+          <button class="btn btn-on-hero btn-sm" id="btnImport">Importar JSON</button>
+          <button class="btn btn-on-hero btn-sm" id="btnOpenInvestor">Abrir área do investidor</button>
+          <button class="btn btn-on-hero btn-sm" id="btnReset">Limpar tudo</button>
+          <input type="file" id="importFile" accept="application/json" style="display:none">
+        </div>
+      </div>
+      <div class="summary" id="summaryCard"></div>
+    </div>
+  </section>
+
+  <div class="tabs" role="tablist">
+    <button class="tab active" data-panel="dashboard">Dashboard</button>
+    <button class="tab" data-panel="prospects">Relacionamentos</button>
+    <button class="tab" data-panel="docs">Documentos</button>
+    <button class="tab" data-panel="investors">Investidores</button>
+    <button class="tab" data-panel="events">Acessos &amp; Logs</button>
+    <button class="tab" data-panel="nda">NDA</button>
+    <button class="tab" data-panel="settings">Configurações</button>
+  </div>
+
+  <!-- ==================== DASHBOARD ==================== -->
+  <section class="panel active" data-panel="dashboard">
+    <div class="kpis">
+      <div class="kpi brand">
+        <div class="label">Documentos publicados</div>
+        <div class="value" id="kpiDocs">0</div>
+        <div class="sub" id="kpiDocsSub">—</div>
+      </div>
+      <div class="kpi corp">
+        <div class="label">Investidores ativos</div>
+        <div class="value" id="kpiInv">0</div>
+        <div class="sub" id="kpiInvSub">—</div>
+      </div>
+      <div class="kpi accent">
+        <div class="label">Sessões (7 dias)</div>
+        <div class="value" id="kpiSes">0</div>
+        <div class="sub" id="kpiSesSub">—</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Downloads totais</div>
+        <div class="value" id="kpiDl">0</div>
+        <div class="sub" id="kpiDlSub">—</div>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <div class="section-head">
+        <div>
+          <h3>Atividade recente</h3>
+          <div class="sub">Últimos 30 eventos registrados (mais novos primeiro).</div>
+        </div>
+        <button class="btn btn-soft btn-sm" id="btnGoEvents">Ver todos</button>
+      </div>
+      <div class="section-body" id="recentEvents"></div>
+    </div>
+
+    <div class="section-card">
+      <div class="section-head">
+        <h3>Uso de armazenamento</h3>
+        <div class="sub">localStorage do navegador (limite típico 5–10 MB)</div>
+      </div>
+      <div class="section-body">
+        <div id="usageText" class="muted" style="font-size:13.5px"></div>
+        <div class="usage-bar"><div id="usageBar" style="width:0%"></div></div>
+        <div style="margin-top:8px; font-size:12.5px; color:var(--muted)">
+          Para arquivos grandes (PDFs &gt; 1 MB), considere apontar para uma URL externa em vez de subir base64. Suba grandes lotes em pacotes.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== RELACIONAMENTOS ==================== -->
+  <section class="panel" data-panel="prospects">
+    <div class="section-card">
+      <div class="section-head">
+        <div>
+          <h3>Relacionamentos e propostas</h3>
+          <div class="sub">Contatos antes do primeiro acesso: conversas, reuniões, propostas na rua e próximos passos.</div>
+        </div>
+        <div class="row-actions">
+          <button class="btn btn-soft btn-sm" id="btnExportProspects">Exportar CSV</button>
+          <button class="btn btn-primary btn-sm" id="btnNewProspect">+ Novo contato</button>
+        </div>
+      </div>
+      <div class="section-body">
+        <div class="panel-toolbar">
+          <div class="search">
+            <span aria-hidden="true">🔎</span>
+            <input id="prospectSearch" type="text" placeholder="Buscar por nome, fundo, responsável, origem, notas...">
+          </div>
+          <select id="prospectStageFilter" class="btn btn-soft btn-sm" style="border-radius:999px">
+            <option value="">Todos os estágios</option>
+          </select>
+          <select id="prospectOwnerFilter" class="btn btn-soft btn-sm" style="border-radius:999px">
+            <option value="">Todos os responsáveis</option>
+          </select>
+        </div>
+        <div style="overflow:auto">
+          <table class="table" id="tableProspects">
+            <thead>
+              <tr>
+                <th>Contato</th>
+                <th>Responsável</th>
+                <th>Estágio</th>
+                <th>Prioridade</th>
+                <th>Última conversa</th>
+                <th>Próximo passo</th>
+                <th>Proposta / contexto</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== DOCUMENTOS ==================== -->
+  <section class="panel" data-panel="docs">
+    <div class="section-card">
+      <div class="section-head">
+        <div>
+          <h3>Documentos</h3>
+          <div class="sub">CRUD completo. Cada documento tem múltiplas versões.</div>
+        </div>
+        <div class="row-actions">
+          <button class="btn btn-primary btn-sm" id="btnNewDoc">+ Novo documento</button>
+        </div>
+      </div>
+      <div class="section-body">
+        <div class="panel-toolbar">
+          <div class="search">
+            <span aria-hidden="true">🔎</span>
+            <input id="docSearch" type="text" placeholder="Buscar por título, descrição, categoria…">
+          </div>
+          <select id="docCatFilter" class="btn btn-soft btn-sm" style="border-radius:999px">
+            <option value="">Todas as categorias</option>
+          </select>
+        </div>
+        <div style="overflow:auto">
+          <table class="table" id="tableDocs">
+            <thead>
+              <tr>
+                <th>Título</th>
+                <th>Fase</th>
+                <th>Ordem</th>
+                <th>Categoria</th>
+                <th>Versões</th>
+                <th>Última publicação</th>
+                <th>Tam.</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== INVESTIDORES ==================== -->
+  <section class="panel" data-panel="investors">
+    <div class="section-card">
+      <div class="section-head">
+        <div>
+          <h3>Investidores cadastrados</h3>
+          <div class="sub">Origem do cadastro: quem entrou pelo portal aparece como "Cadastro via portal". Isso não libera fases sozinho; a liberação segue a configuração de cada fase.</div>
+        </div>
+        <div class="row-actions">
+          <button class="btn btn-soft btn-sm" id="btnReconcile" title="Varre sessões antigas e cria/atualiza investidores retroativamente">Reconciliar histórico</button>
+          <button class="btn btn-primary btn-sm" id="btnNewInvestor">+ Novo investidor</button>
+        </div>
+      </div>
+      <div class="section-body">
+        <div class="panel-toolbar">
+          <div class="search">
+            <span aria-hidden="true">🔎</span>
+            <input id="invSearch" type="text" placeholder="Buscar por nome, empresa, email, whatsapp…">
+          </div>
+        </div>
+        <div style="overflow:auto">
+          <table class="table" id="tableInv">
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>Empresa</th>
+                <th>Contato</th>
+                <th>Origem</th>
+                <th>Fase atual</th>
+                <th>Status</th>
+                <th>Sessões</th>
+                <th>Cadastrado / Última visita</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== EVENTOS ==================== -->
+  <section class="panel" data-panel="events">
+    <div class="section-card">
+      <div class="section-head">
+        <div>
+          <h3>Acessos e downloads</h3>
+          <div class="sub">Auditoria completa: aceites de NDA, sessões e downloads.</div>
+        </div>
+        <button class="btn btn-soft btn-sm" id="btnExportEvents">Exportar CSV</button>
+      </div>
+      <div class="section-body">
+        <div class="panel-toolbar">
+          <div class="search">
+            <span aria-hidden="true">🔎</span>
+            <input id="eventSearch" type="text" placeholder="Buscar por nome, empresa ou documento…">
+          </div>
+          <select id="eventTypeFilter" class="btn btn-soft btn-sm" style="border-radius:999px">
+            <option value="">Todos os tipos</option>
+            <option value="session_start">Início de sessão</option>
+            <option value="nda_accept">Aceite de NDA</option>
+            <option value="auth_passed">Autenticação</option>
+            <option value="download">Download</option>
+            <option value="view">Leitura na tela</option>
+            <option value="phase_term_accept">Aceite de termo de fase</option>
+            <option value="phase_approval_request">Pedido de aprovação de fase</option>
+            <option value="phase_request_rejected">Rejeição de fase</option>
+            <option value="phase_advance">Avanço de fase</option>
+            <option value="phase_cta_click">Solicitação de avanço (CTA)</option>
+          </select>
+        </div>
+        <div id="eventsList"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== NDA ==================== -->
+  <section class="panel" data-panel="nda">
+    <div class="section-card">
+      <div class="section-head">
+        <div>
+          <h3>Termo de Confidencialidade (NDA)</h3>
+          <div class="sub">Edite o texto e suba a versão. Aceites antigos permanecem registrados com a versão correspondente.</div>
+        </div>
+        <div class="row-actions">
+          <button class="btn btn-soft btn-sm" id="btnNDAReset">Restaurar padrão</button>
+          <button class="btn btn-primary btn-sm" id="btnNDASave">Salvar (sem subir versão)</button>
+          <button class="btn btn-corp btn-sm" id="btnNDAVersionUp">Salvar e subir versão</button>
+        </div>
+      </div>
+      <div class="section-body">
+        <div class="form-grid">
+          <div class="field">
+            <label>Título do termo</label>
+            <input id="ndaTitle" type="text">
+          </div>
+          <div class="field">
+            <label>Versão atual</label>
+            <input id="ndaVersion" type="text" disabled>
+          </div>
+        </div>
+        <div class="field">
+          <label>Conteúdo do termo</label>
+          <textarea id="ndaContent" style="min-height:280px"></textarea>
+        </div>
+        <div class="muted" id="ndaMeta" style="font-size:12.5px"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== CONFIGURAÇÕES ==================== -->
+  <section class="panel" data-panel="settings">
+    <div class="section-card">
+      <div class="section-head">
+        <h3>Identidade e configurações</h3>
+        <button class="btn btn-primary btn-sm" id="btnSaveSettings">Salvar configurações</button>
+      </div>
+      <div class="section-body">
+        <div class="form-grid">
+          <div class="field">
+            <label>Nome da empresa</label>
+            <input id="setName" type="text">
+          </div>
+          <div class="field">
+            <label>Subtítulo / produto</label>
+            <input id="setSubtitle" type="text">
+          </div>
+        </div>
+        <div class="field">
+          <label>Marca d'água (rodapé)</label>
+          <input id="setWatermark" type="text">
+        </div>
+        <div class="field">
+          <label>Avanço de fase</label>
+          <select id="setPhaseApprovalMode">
+            <option value="auto">Automático após aceite do termo pelo investidor</option>
+            <option value="admin">Exigir aprovação do admin após aceite do termo</option>
+          </select>
+          <div class="muted" style="font-size:12.5px;margin-top:6px">No modo com aprovação, o investidor aceita o termo e aguarda sua liberação no cadastro.</div>
+        </div>
+        <div class="form-grid three">
+          <div class="field">
+            <label>Cor brand (verde teal)</label>
+            <input id="setBrand" type="color">
+          </div>
+          <div class="field">
+            <label>Cor accent (terracota)</label>
+            <input id="setAccent" type="color">
+          </div>
+          <div class="field">
+            <label>Cor corporativa (azul)</label>
+            <input id="setCorp" type="color">
+          </div>
+        </div>
+        <div class="muted" style="font-size:12.5px">
+          As cores são compartilhadas com a área do investidor. Edite com cuidado para manter contraste adequado.
+        </div>
+        <div style="margin-top:20px;border-top:1px solid var(--line);padding-top:18px">
+          <h4 style="margin:0 0 10px;font-size:15px;font-family:'Palatino Linotype','Book Antiqua',serif">Visão geral do investidor</h4>
+          <div class="field">
+            <label>Título principal</label>
+            <input id="setHeroTagline" type="text">
+          </div>
+          <div class="field">
+            <label>Texto institucional</label>
+            <textarea id="setHeroDescription" style="min-height:90px"></textarea>
+          </div>
+          <h4 style="margin:14px 0 10px;font-size:14px">Indicadores</h4>
+          <div class="form-grid">
+            <div class="field"><label>Indicador 1 - rótulo</label><input id="setKpi1Label" type="text"></div>
+            <div class="field"><label>Indicador 1 - valor</label><input id="setKpi1Value" type="text"></div>
+          </div>
+          <div class="field"><label>Indicador 1 - subtítulo</label><input id="setKpi1Sub" type="text"></div>
+          <div class="form-grid">
+            <div class="field"><label>Indicador 2 - rótulo</label><input id="setKpi2Label" type="text"></div>
+            <div class="field"><label>Indicador 2 - valor</label><input id="setKpi2Value" type="text"></div>
+          </div>
+          <div class="field"><label>Indicador 2 - subtítulo</label><input id="setKpi2Sub" type="text"></div>
+          <div class="form-grid">
+            <div class="field"><label>Indicador 3 - rótulo</label><input id="setKpi3Label" type="text"></div>
+            <div class="field"><label>Indicador 3 - valor</label><input id="setKpi3Value" type="text"></div>
+          </div>
+          <div class="field"><label>Indicador 3 - subtítulo</label><input id="setKpi3Sub" type="text"></div>
+          <div class="form-grid">
+            <div class="field"><label>Indicador 4 - rótulo</label><input id="setKpi4Label" type="text"></div>
+            <div class="field"><label>Indicador 4 - valor</label><input id="setKpi4Value" type="text"></div>
+          </div>
+          <div class="field"><label>Indicador 4 - subtítulo</label><input id="setKpi4Sub" type="text"></div>
+          <h4 style="margin:14px 0 10px;font-size:14px">Diferenciais</h4>
+          <div class="form-grid">
+            <div class="field"><label>Diferencial 1 - título</label><input id="setDiff1Title" type="text"></div>
+            <div class="field"><label>Diferencial 1 - descrição</label><input id="setDiff1Description" type="text"></div>
+          </div>
+          <div class="form-grid">
+            <div class="field"><label>Diferencial 2 - título</label><input id="setDiff2Title" type="text"></div>
+            <div class="field"><label>Diferencial 2 - descrição</label><input id="setDiff2Description" type="text"></div>
+          </div>
+          <div class="form-grid">
+            <div class="field"><label>Diferencial 3 - título</label><input id="setDiff3Title" type="text"></div>
+            <div class="field"><label>Diferencial 3 - descrição</label><input id="setDiff3Description" type="text"></div>
+          </div>
+          <h4 style="margin:14px 0 10px;font-size:14px">Contato exibido ao investidor</h4>
+          <div class="form-grid">
+            <div class="field"><label>Nome</label><input id="setContactName" type="text"></div>
+            <div class="field"><label>Cargo</label><input id="setContactRole" type="text"></div>
+          </div>
+          <div class="form-grid">
+            <div class="field"><label>E-mail</label><input id="setContactEmail" type="email"></div>
+            <div class="field"><label>WhatsApp</label><input id="setContactWhatsapp" type="tel"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div class="watermark">Confidencial · IXOVET · Admin</div>
+
+<!-- ==================== MODALS ==================== -->
+
+<!-- Modal: Documento -->
+<div class="modal-overlay" id="modalDoc">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="modalDocTitle">Novo documento</h3>
+      <button class="btn btn-ghost btn-sm" data-close>Fechar</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="docId">
+      <div class="form-grid">
+        <div class="field">
+          <label>Título</label>
+          <input id="docTitle" type="text" placeholder="Ex.: Demonstrativo Financeiro 2025">
+        </div>
+        <div class="field">
+          <label>Categoria</label>
+          <input id="docCategory" type="text" placeholder="Ex.: Financeiro" list="catList">
+          <datalist id="catList"></datalist>
+        </div>
+      </div>
+      <div class="form-grid">
+        <div class="field">
+          <label>Fase de acesso</label>
+          <select id="docPhase"></select>
+        </div>
+        <div class="field">
+          <label>Subseção <button type="button" class="btn btn-link btn-xs" id="btnManageSubsections" style="font-size:11px;padding:0">gerenciar</button></label>
+          <select id="docSection"></select>
+        </div>
+      </div>
+      <div class="form-grid">
+        <div class="field">
+          <label>Ordem de exibição</label>
+          <input id="docOrder" type="number" min="1" step="1" placeholder="1">
+        </div>
+        <div class="field">
+          <label>Critério</label>
+          <input type="text" disabled value="Menor número aparece primeiro na fase/subseção">
+        </div>
+      </div>
+      <div class="field">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13.5px;text-transform:none;letter-spacing:normal">
+          <input id="docViewOnly" type="checkbox" style="width:auto;accent-color:var(--brand)">
+          Apenas leitura na tela (sem download)
+        </label>
+      </div>
+      <div class="field">
+        <label>Descrição</label>
+        <textarea id="docDescription" placeholder="Descrição visível ao investidor"></textarea>
+      </div>
+      <div id="versionsBlock">
+        <h4 style="margin:14px 0 8px; font-size:14px">Versões</h4>
+        <div id="versionsList"></div>
+        <div style="margin-top:8px; padding:12px; border:1px dashed var(--line-strong); border-radius:var(--radius-sm); background:var(--bg-soft)">
+          <strong style="font-size:13px">+ Adicionar nova versão</strong>
+          <div class="form-grid" style="margin-top:8px">
+            <div class="field" style="margin-bottom:0">
+              <label>Rótulo da versão</label>
+              <input id="newVersion" type="text" placeholder="Ex.: 1.0">
+            </div>
+            <div class="field" style="margin-bottom:0">
+              <label>Notas (opcional)</label>
+              <input id="newVersionNotes" type="text" placeholder="Ex.: Versão inicial / revisão XYZ">
+            </div>
+          </div>
+          <label class="file-drop" style="margin-top:10px;display:block" id="fileDrop">
+            <input type="file" id="newVersionFile" style="display:none">
+            <span id="fileDropText">Clique ou arraste o arquivo (PDF, DOCX, XLSX… até ~3 MB recomendado)</span>
+          </label>
+          <div style="margin-top:10px; display:flex; justify-content:flex-end; gap:8px">
+            <button class="btn btn-soft btn-sm" id="btnAddUrlVersion">Versão por URL externa</button>
+            <button class="btn btn-corp btn-sm" id="btnAddVersion">Adicionar versão</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" data-close>Cancelar</button>
+      <button class="btn btn-primary" id="btnSaveDoc">Salvar documento</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: gerenciar subseções da fase -->
+<div class="modal-overlay" id="modalSubs">
+  <div class="modal lg">
+    <div class="modal-head">
+      <h3 id="modalSubsTitle">Gerenciar subseções</h3>
+      <button class="btn btn-ghost btn-sm" data-close>Fechar</button>
+    </div>
+    <div class="modal-body">
+      <p class="muted" style="font-size:13px;margin-top:0">Subseções aparecem como sub-blocos visuais dentro da fase, com título, nota e link externo opcional.</p>
+      <div id="subsList"></div>
+      <div style="margin-top:14px;padding:14px;border:1px dashed var(--line-strong);border-radius:var(--radius-sm);background:var(--bg-soft)">
+        <strong style="font-size:13px">+ Nova subseção</strong>
+        <div class="form-grid" style="margin-top:8px">
+          <div class="field" style="margin-bottom:0">
+            <label>ID curto (sem espaços)</label>
+            <input id="subsNewId" type="text" placeholder="ex: public_ref">
+          </div>
+          <div class="field" style="margin-bottom:0">
+            <label>Título</label>
+            <input id="subsNewTitle" type="text" placeholder="ex: Documentos Públicos de Referência">
+          </div>
+        </div>
+        <div class="field" style="margin-top:8px"><label>Nota explicativa (opcional)</label>
+          <textarea id="subsNewNote" placeholder="Ex.: Documentos publicados publicamente em ri.ixovet.com.br. Incluídos aqui para conveniência do investidor."></textarea>
+        </div>
+        <div class="form-grid">
+          <div class="field" style="margin-bottom:0"><label>Link externo (opcional)</label>
+            <input id="subsNewLink" type="url" placeholder="https://ri.ixovet.com.br">
+          </div>
+          <div class="field" style="margin-bottom:0"><label>Ordem</label>
+            <input id="subsNewOrder" type="number" value="1">
+          </div>
+        </div>
+        <div style="margin-top:10px;display:flex;justify-content:flex-end">
+          <button class="btn btn-corp btn-sm" id="btnAddSubsection">Adicionar</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-primary" data-close>Concluído</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: URL externa -->
+<div class="modal-overlay" id="modalUrl">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>Versão por URL externa</h3>
+      <button class="btn btn-ghost btn-sm" data-close>Fechar</button>
+    </div>
+    <div class="modal-body">
+      <p class="muted" style="font-size:13px;margin-top:0">Use uma URL para arquivos grandes hospedados no servidor da empresa (mesma origem) ou em um CDN privado.</p>
+      <div class="field">
+        <label>URL do arquivo</label>
+        <input id="urlValue" type="url" placeholder="https://intranet.empresa.com/dataroom/arquivo.pdf">
+      </div>
+      <div class="form-grid">
+        <div class="field"><label>Nome do arquivo</label><input id="urlFilename" type="text" placeholder="arquivo.pdf"></div>
+        <div class="field"><label>Tamanho aproximado (bytes)</label><input id="urlSize" type="number" min="0" placeholder="0"></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" data-close>Cancelar</button>
+      <button class="btn btn-corp" id="btnConfirmUrl">Adicionar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Relacionamento / contato pre-acesso -->
+<div class="modal-overlay" id="modalProspect">
+  <div class="modal lg">
+    <div class="modal-head">
+      <h3 id="modalProspectTitle">Novo contato</h3>
+      <button class="btn btn-ghost btn-sm" data-close>Fechar</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="prospectId">
+      <div class="form-grid three">
+        <div class="field"><label>Nome</label><input id="prospectName" type="text" placeholder="Nome do investidor ou contato"></div>
+        <div class="field"><label>Empresa / Fundo</label><input id="prospectCompany" type="text" placeholder="Fundo, family office, empresa..."></div>
+        <div class="field"><label>Cargo / papel</label><input id="prospectRole" type="text" placeholder="Sócio, analista, advisor..."></div>
+      </div>
+      <div class="form-grid three">
+        <div class="field"><label>E-mail</label><input id="prospectEmail" type="email"></div>
+        <div class="field"><label>WhatsApp / telefone</label><input id="prospectWhats" type="tel"></div>
+        <div class="field"><label>Origem</label><input id="prospectSource" type="text" placeholder="Indicação, inbound, rede John..."></div>
+      </div>
+      <div class="form-grid three">
+        <div class="field"><label>Responsável</label><input id="prospectOwner" type="text" list="ownerList" placeholder="Fabio, John, Toledo..."><datalist id="ownerList"></datalist></div>
+        <div class="field"><label>Estágio</label><select id="prospectStage"></select></div>
+        <div class="field"><label>Prioridade</label>
+          <select id="prospectPriority">
+            <option value="alta">Alta</option>
+            <option value="media">Média</option>
+            <option value="baixa">Baixa</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-grid three">
+        <div class="field"><label>Potencial / ticket</label><input id="prospectTicket" type="text" placeholder="Ex.: R$ 1 mi, estratégico, coinvest..."></div>
+        <div class="field"><label>Proposta na rua</label><input id="prospectProposal" type="text" placeholder="Ex.: enviada em 18/05, aguardando retorno"></div>
+        <div class="field"><label>Próximo follow-up</label><input id="prospectNextAction" type="date"></div>
+      </div>
+      <div class="form-grid">
+        <div class="field"><label>Última conversa</label><input id="prospectLastContact" type="datetime-local"></div>
+        <div class="field"><label>Fit / tese</label><input id="prospectFit" type="text" placeholder="Estratégico, financeiro, saúde animal, agro..."></div>
+      </div>
+      <div class="field"><label>Notas internas</label><textarea id="prospectNotes" placeholder="Resumo do relacionamento, objeções, próximos passos e pontos sensíveis."></textarea></div>
+      <div id="prospectActivityBlock" style="margin-top:14px"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" data-close>Cancelar</button>
+      <button class="btn btn-primary" id="btnSaveProspect">Salvar contato</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: registrar interação do relacionamento -->
+<div class="modal-overlay" id="modalProspectInteraction">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="modalProspectInteractionTitle">Registrar interação</h3>
+      <button class="btn btn-ghost btn-sm" data-close>Fechar</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="interactionProspectId">
+      <div class="form-grid">
+        <div class="field"><label>Data e hora</label><input id="interactionAt" type="datetime-local"></div>
+        <div class="field"><label>Registrado por</label><input id="interactionBy" type="text" list="ownerList" placeholder="Quem conversou"></div>
+      </div>
+      <div class="form-grid">
+        <div class="field">
+          <label>Tipo</label>
+          <select id="interactionType">
+            <option value="whatsapp">WhatsApp</option>
+            <option value="call">Ligação</option>
+            <option value="meeting">Reunião</option>
+            <option value="email">E-mail</option>
+            <option value="proposal">Proposta enviada</option>
+            <option value="internal">Alinhamento interno</option>
+          </select>
+        </div>
+        <div class="field"><label>Atualizar estágio</label><select id="interactionStage"></select></div>
+      </div>
+      <div class="field"><label>Resumo</label><textarea id="interactionSummary" placeholder="O que foi conversado, quem participou, posição do investidor e combinados."></textarea></div>
+      <div class="field"><label>Próximo follow-up</label><input id="interactionNextAction" type="date"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" data-close>Cancelar</button>
+      <button class="btn btn-primary" id="btnSaveProspectInteraction">Registrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Investidor -->
+<div class="modal-overlay" id="modalInv">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="modalInvTitle">Novo investidor</h3>
+      <button class="btn btn-ghost btn-sm" data-close>Fechar</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="invId">
+      <div class="form-grid">
+        <div class="field"><label>Nome completo</label><input id="invName" type="text"></div>
+        <div class="field"><label>Empresa / Fundo</label><input id="invCompany" type="text"></div>
+      </div>
+      <div class="form-grid">
+        <div class="field"><label>E-mail</label><input id="invEmail" type="email"></div>
+        <div class="field"><label>WhatsApp</label><input id="invWhats" type="tel" placeholder="+55 54 99999-9999"></div>
+      </div>
+      <div class="form-grid three">
+        <div class="field"><label>Status</label>
+          <select id="invActive">
+            <option value="true">Ativo</option>
+            <option value="false">Inativo</option>
+          </select>
+        </div>
+        <div class="field"><label>Fase atual</label>
+          <select id="invCurrentPhase"></select>
+        </div>
+        <div class="field"><label>Tags (separadas por vírgula)</label><input id="invTags" type="text" placeholder="Ex.: lead-quente"></div>
+      </div>
+      <div class="field"><label>Notas internas</label><textarea id="invNotes"></textarea></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" data-close>Cancelar</button>
+      <button class="btn btn-primary" id="btnSaveInv">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Confirmação genérica -->
+<div class="modal-overlay" id="modalConfirm">
+  <div class="modal" style="max-width:440px">
+    <div class="modal-head">
+      <h3 id="confirmTitle">Confirmar</h3>
+      <button class="btn btn-ghost btn-sm" data-close>Fechar</button>
+    </div>
+    <div class="modal-body">
+      <p id="confirmMsg" style="margin:0"></p>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" data-close>Cancelar</button>
+      <button class="btn btn-danger" id="btnConfirmYes">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toasts" id="toasts"></div>
+
+<script>
+/* =========================================================
+   DATA ROOM ADMIN — IXOVET
+   v2.5: investidor só acessa a versão atual dos documentos.
+   * settings.phases[].subsections[]
+   * documents[].sectionId
+   * Mini-CRUD de subseções no modal do documento
+   * Default Fase 2: subseção "Documentos Públicos de Referência"
+   * botão "Abrir área do investidor" -> v2.5
+   ========================================================= */
+
+const STORE_KEY = 'ixovet.dataroom.v1';
+
+const DEFAULT_NDA = `TERMO DE CONFIDENCIALIDADE
+
+1. As informações contidas neste data room são de propriedade exclusiva da IXOVET e/ou de seus acionistas, parceiros, pesquisadores, consultores e assessores, e estão sendo disponibilizadas exclusivamente para fins de avaliação de uma potencial operação de investimento, parceria, licenciamento ou aquisição relacionada ao projeto IXOVET.
+
+2. O destinatário compromete-se a manter sigilo absoluto sobre tais informações, não as divulgando a terceiros, salvo aos seus assessores diretamente envolvidos na análise, que também ficarão vinculados a este compromisso.
+
+3. É vedada a reprodução, total ou parcial, dos materiais aqui disponibilizados, bem como a sua utilização para qualquer finalidade diversa da avaliação autorizada da oportunidade IXOVET.
+
+4. O presente termo permanecerá em vigor pelo prazo de 5 (cinco) anos contados da data do aceite, e o seu descumprimento sujeitará o infrator às responsabilidades civis e criminais cabíveis.
+
+5. Ao clicar em "Aceitar e acessar", o investidor declara estar de acordo com todas as cláusulas deste termo, ficando registrados o aceite, a data, a hora e a versão deste documento.`;
+
+/* ---------- helpers ---------- */
+const $  = (s, r=document) => r.querySelector(s);
+const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
+const fmtDate = (iso) => {
+  if(!iso) return '—';
+  try{
+    const d = new Date(iso);
+    return d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+  }catch(e){ return '—' }
+};
+const fmtSize = (n) => {
+  if(!n && n!==0) return '—';
+  if(n < 1024) return n + ' B';
+  if(n < 1024*1024) return (n/1024).toFixed(1) + ' KB';
+  return (n/1024/1024).toFixed(2) + ' MB';
+};
+const uid = (p='id') => p+'_'+Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+function escapeHtml(str){
+  if(str==null) return '';
+  return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function getSectionOrder(settings, phaseId, sectionId){
+  if(!sectionId) return -1;
+  const phase = (settings.phases||[]).find(p => p.id===phaseId);
+  const sub = (phase?.subsections||[]).find(x => x.id===sectionId);
+  return Number(sub?.order) || 0;
+}
+function sortDocumentsForDisplay(documents, settings){
+  return (documents||[]).slice().sort((a,b) =>
+    ((a.phase||1) - (b.phase||1)) ||
+    (getSectionOrder(settings, a.phase||1, a.sectionId) - getSectionOrder(settings, b.phase||1, b.sectionId)) ||
+    ((Number(a.order)||0) - (Number(b.order)||0)) ||
+    String(a.title||'').localeCompare(String(b.title||''), 'pt-BR')
+  );
+}
+function nextDocOrder(s, phaseId, sectionId, ignoreId){
+  const sameGroup = (s.documents||[])
+    .filter(d => d.id !== ignoreId && (d.phase||1) === phaseId && ((d.sectionId||'') === (sectionId||'')));
+  return sameGroup.reduce((max, d) => Math.max(max, Number(d.order)||0), 0) + 1;
+}
+const PROSPECT_STAGES = [
+  { id:'mapeado', label:'Mapeado', badge:'brand' },
+  { id:'contato_feito', label:'Contato feito', badge:'corp' },
+  { id:'reuniao_agendada', label:'Reunião agendada', badge:'corp' },
+  { id:'reuniao_realizada', label:'Reunião realizada', badge:'accent' },
+  { id:'proposta_enviada', label:'Proposta enviada', badge:'warn' },
+  { id:'follow_up', label:'Follow-up', badge:'warn' },
+  { id:'pausado', label:'Pausado', badge:'' },
+  { id:'convertido', label:'Convertido em investidor', badge:'good' },
+  { id:'descartado', label:'Descartado', badge:'bad' }
+];
+const PROSPECT_PRIORITY = {
+  alta:{ label:'Alta', badge:'bad' },
+  media:{ label:'Média', badge:'warn' },
+  baixa:{ label:'Baixa', badge:'' }
+};
+function prospectStageMeta(stage){
+  return PROSPECT_STAGES.find(s => s.id === stage) || PROSPECT_STAGES[0];
+}
+function prospectPriorityMeta(priority){
+  return PROSPECT_PRIORITY[priority] || PROSPECT_PRIORITY.media;
+}
+function formatDateOnly(value){
+  if(!value) return '—';
+  try{ return new Date(value + 'T00:00:00').toLocaleDateString('pt-BR'); }
+  catch(_){ return '—'; }
+}
+function prospectLastInteraction(p){
+  const items = (p.interactions || []).slice().sort((a,b)=> (b.at||'').localeCompare(a.at||''));
+  return items[0] || null;
+}
+function normalizeProspect(p){
+  p.stage = p.stage || 'mapeado';
+  p.priority = p.priority || 'media';
+  p.createdAt = p.createdAt || new Date().toISOString();
+  p.updatedAt = p.updatedAt || p.createdAt;
+  if(!Array.isArray(p.interactions)) p.interactions = [];
+  return p;
+}
+
+/* ---------- store ---------- */
+const DEFAULT_INSTITUTIONAL = {
+  hero:{
+    tagline:'Saúde animal · vacina anticarrapato bovino & canino',
+    description:'A IXOVET desenvolve uma vacina biológica recombinante contra carrapatos, com aplicação em bovinos e pets caninos. A tecnologia combina proteínas recombinantes, alta estabilidade industrial e provas de conceito com eficácia superior a 90%, mirando um problema bilionário ainda sem solução vacinal eficaz no mercado.'
+  },
+  kpis:[
+    { label:'Captação alvo', value:'R$ 10,3 mi', sub:'plano de execução em 18 meses' },
+    { label:'Maturidade científica', value:'TRL 6+', sub:'TRL 7 em andamento' },
+    { label:'Eficácia observada', value:'>90%', sub:'4 provas de conceito' },
+    { label:'Mercado potencial BR', value:'R$ 10,8 bi/ano', sub:'bovinos + pets caninos' }
+  ],
+  diferenciais:[
+    { title:'Tecnologia proprietária', description:'Vacina biológica com proteínas recombinantes e antígenos selecionados, distinta da solução BM86.' },
+    { title:'Aplicação ampla', description:'Endereça bovinos e cães, ampliando o mercado-alvo e as possibilidades comerciais.' },
+    { title:'Caminho regulatório claro', description:'Plano de 18 meses para patente, lote piloto, testes clínicos e submissão regulatória.' }
+  ],
+  contact:{
+    name:'Equipe IXOVET', role:'Relações com Investidores', photo:null,
+    email:'contato@ixovet.com.br', whatsapp:''
+  }
+};
+
+const DEFAULT_PHASES = [
+  { id:1, name:'Apresentação',
+    shortDesc:'Visão geral da oportunidade, teaser e tese de investimento.',
+    lockedTeaser:'Resumo institucional, problema de mercado, solução proprietária, captação alvo e próximos marcos.',
+    requiresTerm:false, termTitle:'', termContent:'', termVersion:0,
+    ctaMessage:'Olá, equipe IXOVET. Gostaria de conhecer melhor a oportunidade de investimento.',
+    subsections: [] },
+  { id:2, name:'Aprofundamento',
+    shortDesc:'Tecnologia, validação científica, orçamento, cronograma e mercado.',
+    lockedTeaser:'Detalhamento técnico, provas de conceito, propriedade intelectual, plano regulatório, orçamento por etapa e potencial de mercado.',
+    requiresTerm:true, termTitle:'Termo de Aprofundamento',
+    termContent:'Pelo presente Termo de Aprofundamento, o INVESTIDOR, já signatário do NDA original, reconhece e aceita que terá acesso a informações estratégicas adicionais sobre tecnologia, validação científica, propriedade intelectual, orçamento, cronograma regulatório e estratégia comercial da IXOVET. O INVESTIDOR estende o sigilo previsto no NDA original a essas novas informações e compromete-se a não utilizá-las para fins concorrenciais ou de divulgação a terceiros não autorizados.',
+    termVersion:1,
+    ctaMessage:'Olá, equipe IXOVET. Gostaria de avançar para a fase de Aprofundamento e analisar os materiais técnicos e financeiros.',
+    subsections: [
+      { id:'public_ref',
+        title:'Documentos de Referência',
+        note:'Materiais técnicos, regulatórios e públicos que ajudem a contextualizar a oportunidade IXOVET.',
+        externalLink:'',
+        order:1 }
+    ] },
+  { id:3, name:'Negociação',
+    shortDesc:'Due diligence completa, contratos, PI, cap table e minutas da operação.',
+    lockedTeaser:'Documentos sensíveis para negociação, incluindo propriedade intelectual, contratos, orçamento detalhado, minutas societárias e termos comerciais.',
+    requiresTerm:true, termTitle:'Termo de Negociação',
+    termContent:'Pelo presente Termo de Negociação, o INVESTIDOR, já signatário do NDA original, reconhece que a Fase de Negociação contém informações sensíveis adicionais, incluindo propriedade intelectual, contratos, orçamento detalhado, cap table, termos comerciais e minutas societárias. O INVESTIDOR reafirma seus deveres de confidencialidade, declara compreender que o acesso não representa obrigação de fechamento da operação e compromete-se a utilizar as informações apenas para avaliação da potencial negociação privada com a IXOVET.',
+    termVersion:1,
+    ctaMessage:'Olá, equipe IXOVET. Gostaria de avançar para a fase de Negociação após analisar o material anterior.',
+    subsections: [] }
+];
+function normalizePhaseDefaults(settings){
+  const negotiationTerm = {
+    termTitle:'Termo de Negociação',
+    termContent:'Pelo presente Termo de Negociação, o INVESTIDOR, já signatário do NDA original, reconhece que a Fase de Negociação contém informações sensíveis adicionais, incluindo demonstrativos completos, contratos, contingências, modelo financeiro projetado e minutas societárias. O INVESTIDOR reafirma seus deveres de confidencialidade, declara compreender que o acesso não representa obrigação de fechamento da operação e compromete-se a utilizar as informações apenas para avaliação da potencial negociação privada com a IXOVET.',
+    termVersion:1
+  };
+  (settings.phases || []).forEach(p => {
+    if(!Array.isArray(p.subsections)) p.subsections = [];
+    if(p.id === 3 && p.name === 'Negociação' && !p.requiresTerm && !p.termTitle && !p.termContent && negotiationTerm){
+      p.requiresTerm = true;
+      p.termTitle = negotiationTerm.termTitle;
+      p.termContent = negotiationTerm.termContent;
+      p.termVersion = negotiationTerm.termVersion;
+    }
+  });
+}
+function defaultStore(){
+  return {
+    version:'2.0',
+    settings:{
+      company:{ name:'IXOVET', subtitle:'Data Room de Investimento', logo:null },
+      palette:{ brand:'#0f766e', accent:'#c96d42', corporate:'#0c8ce9' },
+      watermark:'Confidencial · IXOVET',
+      phaseApprovalMode:'auto',
+      institutional: DEFAULT_INSTITUTIONAL,
+      phases: JSON.parse(JSON.stringify(DEFAULT_PHASES))
+    },
+    nda:{ title:'Termo de Confidencialidade (NDA)', content:DEFAULT_NDA, version:1, updatedAt:new Date().toISOString() },
+    documents:[], prospects:[], investors:[], sessions:[], events:[]
+  };
+}
+function loadStore(){
+  try{
+    const raw = localStorage.getItem(STORE_KEY);
+    if(!raw) return defaultStore();
+    const parsed = JSON.parse(raw);
+    const def = defaultStore();
+    const ps = parsed.settings || {};
+    const merged = { ...def, ...parsed,
+      settings:{ ...def.settings, ...ps,
+        company:{ ...def.settings.company, ...(ps.company||{}) },
+        palette:{ ...def.settings.palette, ...(ps.palette||{}) },
+        institutional: ps.institutional || def.settings.institutional,
+        phases: (ps.phases && ps.phases.length) ? ps.phases : def.settings.phases
+      },
+      nda:{ ...def.nda, ...(parsed.nda||{}) },
+      documents:parsed.documents||[], prospects:parsed.prospects||[], investors:parsed.investors||[],
+      sessions:parsed.sessions||[], events:parsed.events||[]
+    };
+    merged.prospects.forEach(normalizeProspect);
+    merged.investors.forEach(i => {
+      if(i.currentPhase==null) i.currentPhase = 1;
+      if(!Array.isArray(i.phaseHistory)) i.phaseHistory = [];
+      if(!Array.isArray(i.phaseRequests)) i.phaseRequests = [];
+    });
+    merged.documents.forEach((d, idx) => {
+      if(d.phase==null) d.phase = 1;
+      if(d.viewOnly==null) d.viewOnly = false;
+      if(d.sectionId===undefined) d.sectionId = null;
+      if(d.order==null) d.order = idx + 1;
+    });
+    normalizePhaseDefaults(merged.settings);
+    return merged;
+  }catch(e){
+    console.warn('Store inválido, recriando.', e);
+    return defaultStore();
+  }
+}
+function saveStore(s){
+  try{
+    localStorage.setItem(STORE_KEY, JSON.stringify(s));
+    return true;
+  }catch(e){
+    toast('Erro ao salvar (localStorage cheio?). Considere usar URL externa para arquivos grandes.', 'bad', 6000);
+    console.error(e);
+    return false;
+  }
+}
+
+function pushEvent(s, evt){
+  evt.id = evt.id || uid('evt');
+  evt.at = evt.at || new Date().toISOString();
+  s.events = s.events || [];
+  s.events.push(evt);
+  saveStore(s);
+}
+
+/* ---------- toasts ---------- */
+function toast(msg, type='good', duration=3000){
+  const el = document.createElement('div');
+  el.className = 'toast ' + (type||'');
+  el.textContent = msg;
+  $('#toasts').appendChild(el);
+  setTimeout(()=>{ el.style.opacity='0'; setTimeout(()=> el.remove(), 200); }, duration);
+}
+
+/* ---------- tabs ---------- */
+$$('.tab').forEach(t => t.addEventListener('click', ()=>{
+  $$('.tab').forEach(x => x.classList.remove('active'));
+  $$('.panel').forEach(x => x.classList.remove('active'));
+  t.classList.add('active');
+  $(`.panel[data-panel="${t.dataset.panel}"]`).classList.add('active');
+  // re-render quando muda
+  if(t.dataset.panel==='dashboard') renderDashboard();
+  if(t.dataset.panel==='prospects') renderProspects();
+  if(t.dataset.panel==='docs') renderDocs();
+  if(t.dataset.panel==='investors') renderInvestors();
+  if(t.dataset.panel==='events') renderEvents();
+  if(t.dataset.panel==='nda') renderNDA();
+  if(t.dataset.panel==='settings') renderSettings();
+}));
+$('#btnGoEvents').addEventListener('click', ()=>{
+  $$('.tab').forEach(x => x.classList.remove('active'));
+  $('.tab[data-panel="events"]').classList.add('active');
+  $$('.panel').forEach(x => x.classList.remove('active'));
+  $('.panel[data-panel="events"]').classList.add('active');
+  renderEvents();
+});
+
+/* ---------- modal helpers ---------- */
+function openModal(id){ $('#'+id).classList.add('active'); }
+function closeModal(id){ $('#'+id).classList.remove('active'); }
+document.addEventListener('click', e => {
+  if(e.target.matches('[data-close]')) e.target.closest('.modal-overlay')?.classList.remove('active');
+  else if(e.target.classList?.contains('modal-overlay')) e.stopPropagation();
+});
+
+/* ---------- DASHBOARD ---------- */
+function renderDashboard(){
+  const s = loadStore();
+  const docs = s.documents || [];
+  const prospects = s.prospects || [];
+  const invs = s.investors || [];
+  const ses = s.sessions || [];
+  const evs = s.events || [];
+
+  // KPIs
+  const docsPub = docs.filter(d => d.versions && d.versions.length>0);
+  $('#kpiDocs').textContent = docsPub.length;
+  $('#kpiDocsSub').textContent = docs.length===docsPub.length ? `${docs.length} cadastrado(s)` : `${docs.length - docsPub.length} sem versão ainda`;
+
+  $('#kpiInv').textContent = invs.filter(i => i.active!==false).length;
+  $('#kpiInvSub').textContent = `${invs.length} cadastrado(s) no total`;
+
+  const weekAgo = Date.now() - 7*24*3600*1000;
+  const ses7 = ses.filter(x => new Date(x.startedAt).getTime() > weekAgo);
+  $('#kpiSes').textContent = ses7.length;
+  $('#kpiSesSub').textContent = `${ses.length} no histórico`;
+
+  const dls = evs.filter(e => e.type==='download');
+  $('#kpiDl').textContent = dls.length;
+  const recentDl = dls.filter(e => new Date(e.at).getTime() > weekAgo).length;
+  $('#kpiDlSub').textContent = `${recentDl} nos últimos 7 dias`;
+
+  // Resumo no hero
+  $('#summaryCard').innerHTML = `
+    <div class="row"><span>Painel</span><span>Admin</span></div>
+    <div class="row"><span>Documentos</span><span>${docs.length}</span></div>
+    <div class="row"><span>Versões</span><span>${docs.reduce((a,d)=>a+(d.versions?.length||0),0)}</span></div>
+    <div class="row"><span>Relacionamentos</span><span>${prospects.filter(p=>!['convertido','descartado'].includes(p.stage)).length}</span></div>
+    <div class="row"><span>Propostas na rua</span><span>${prospects.filter(p=>p.stage==='proposta_enviada').length}</span></div>
+    <div class="row"><span>Investidores</span><span>${invs.length}</span></div>
+    <div class="row"><span>Pedidos de fase</span><span>${invs.reduce((a,i)=> a + (i.phaseRequests||[]).filter(r=>r.status==='pending').length, 0)}</span></div>
+    <div class="row"><span>Sessões</span><span>${ses.length}</span></div>
+    <div class="row"><span>NDA</span><span>v${s.nda.version}</span></div>
+  `;
+
+  // Atividade recente
+  const recent = evs.slice().sort((a,b)=> b.at.localeCompare(a.at)).slice(0, 30);
+  $('#recentEvents').innerHTML = recent.length
+    ? recent.map(e => renderEventRow(e, s)).join('')
+    : '<div class="muted" style="padding:14px">Nenhum evento registrado ainda.</div>';
+
+  // Uso de armazenamento
+  let bytes;
+  try{ bytes = new Blob([localStorage.getItem(STORE_KEY) || '']).size; }catch(_){ bytes = (localStorage.getItem(STORE_KEY)||'').length; }
+  const limit = 5*1024*1024; // estimativa conservadora 5MB
+  const pct = Math.min(100, (bytes/limit)*100);
+  $('#usageText').textContent = `Uso atual: ${fmtSize(bytes)} de ~${fmtSize(limit)} (estimado).`;
+  const bar = $('#usageBar');
+  bar.style.width = pct.toFixed(1)+'%';
+  bar.style.background = pct>80 ? 'var(--bad)' : (pct>50 ? 'var(--warn)' : 'var(--brand)');
+}
+
+function renderEventRow(e, s){
+  const sess = s.sessions.find(x => x.id===e.sessionId);
+  const inv = e.investorId ? s.investors.find(x => x.id===e.investorId) : null;
+  const who = sess
+    ? `${escapeHtml(sess.name)} · ${escapeHtml(sess.company||'—')}`
+    : (inv ? `${escapeHtml(inv.name)} · ${escapeHtml(inv.company||'—')}` : '<span class="muted">—</span>');
+  let what = '';
+  if(e.type==='download'){
+    const doc = s.documents.find(d => d.id===e.documentId);
+    what = `📥 Download de <strong>${escapeHtml(doc?.title || 'documento')}</strong> v${escapeHtml(e.versionLabel||'')}`;
+  } else if(e.type==='view'){
+    const doc = s.documents.find(d => d.id===e.documentId);
+    what = `👁️ Leitura na tela de <strong>${escapeHtml(doc?.title || 'documento')}</strong> v${escapeHtml(e.versionLabel||'')}`;
+  } else if(e.type==='nda_accept'){
+    what = `📝 Aceitou NDA v${escapeHtml((e.meta?.ndaVersion)||'')}`;
+  } else if(e.type==='session_start'){
+    what = `🚪 Iniciou sessão`;
+  } else if(e.type==='auth_passed'){
+    what = `🔐 Autenticou (${escapeHtml(e.meta?.method||'')})`;
+  } else if(e.type==='phase_term_accept'){
+    what = `📋 Aceitou termo da Fase ${escapeHtml(e.meta?.phase||'')} (${escapeHtml(e.meta?.phaseName||'')})`;
+  } else if(e.type==='phase_approval_request'){
+    what = `Solicitou aprovação para Fase ${escapeHtml(e.meta?.phase||'')} (${escapeHtml(e.meta?.phaseName||'')})`;
+  } else if(e.type==='phase_request_rejected'){
+    what = `Aprovação de fase rejeitada: Fase ${escapeHtml(e.meta?.phase||'')}`;
+  } else if(e.type==='phase_advance'){
+    what = `⬆️ Avançou para Fase ${escapeHtml(e.meta?.to||'')} ${e.meta?.via ? '('+escapeHtml(e.meta.via)+')' : ''}`;
+  } else if(e.type==='phase_cta_click'){
+    what = `📞 Solicitou avanço da Fase ${escapeHtml(e.meta?.phase||'')} via WhatsApp`;
+  } else {
+    what = escapeHtml(e.type);
+  }
+  return `<div class="event-row">
+    <div class="when">${fmtDate(e.at)}</div>
+    <div class="who">${who}</div>
+    <div class="what">${what}</div>
+  </div>`;
+}
+
+/* ---------- DOCS ---------- */
+let docSearchTerm = '';
+let docCatFilter = '';
+function renderDocs(){
+  const s = loadStore();
+  const cats = Array.from(new Set(s.documents.map(d => d.category||'Geral'))).sort();
+  // filter dropdown
+  const sel = $('#docCatFilter');
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">Todas as categorias</option>' + cats.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+  sel.value = cats.includes(cur) ? cur : '';
+  $('#catList').innerHTML = cats.map(c => `<option value="${escapeHtml(c)}">`).join('');
+
+  const tb = $('#tableDocs tbody');
+  const term = docSearchTerm.toLowerCase().trim();
+  const rows = sortDocumentsForDisplay(s.documents, s.settings)
+    .filter(d => !docCatFilter || (d.category||'Geral')===docCatFilter)
+    .filter(d => !term || (d.title+' '+(d.description||'')+' '+(d.category||'')).toLowerCase().includes(term))
+    .map(d => {
+      const last = d.versions && d.versions.length ? d.versions[d.versions.length-1] : null;
+      const totalSize = (d.versions||[]).reduce((a,v)=> a + (v.size||0), 0);
+      const ph = (loadStore().settings.phases||[]).find(p => p.id===(d.phase||1));
+      const phaseTxt = ph ? `${ph.id}. ${ph.name}` : `Fase ${d.phase||1}`;
+      const voTxt = d.viewOnly ? '<span class="badge warn" style="margin-left:4px" title="Apenas leitura na tela">view-only</span>' : '';
+      return `<tr>
+        <td>
+          <div style="font-weight:600">${escapeHtml(d.title)}${voTxt}</div>
+          <div class="muted" style="font-size:12.5px">${escapeHtml(d.description||'')}</div>
+        </td>
+        <td><span class="badge brand">${escapeHtml(phaseTxt)}</span></td>
+        <td><span class="badge">${Number(d.order)||0}</span></td>
+        <td><span class="badge">${escapeHtml(d.category||'Geral')}</span></td>
+        <td><span class="badge corp">${(d.versions||[]).length}</span> ${last?`<span class="muted" style="font-size:12px">última: v${escapeHtml(last.version||'')}</span>`:''}</td>
+        <td>${last?fmtDate(last.publishedAt):'<span class="muted">—</span>'}</td>
+        <td>${fmtSize(totalSize)}</td>
+        <td class="row-actions">
+          <button class="btn btn-soft btn-xs" data-edit-doc="${d.id}">Editar</button>
+          <button class="btn btn-corp btn-xs" data-dl-doc="${d.id}">Baixar</button>
+          <button class="btn btn-danger btn-xs" data-del-doc="${d.id}">Excluir</button>
+        </td>
+      </tr>`;
+    }).join('');
+  tb.innerHTML = rows || `<tr><td colspan="8" class="muted" style="text-align:center;padding:20px">Nenhum documento. Use <strong>"+ Novo documento"</strong> para começar.</td></tr>`;
+
+  $$('[data-edit-doc]').forEach(b => b.addEventListener('click', ()=> openDocModal(b.dataset.editDoc)));
+  $$('[data-del-doc]').forEach(b => b.addEventListener('click', ()=> deleteDoc(b.dataset.delDoc)));
+  $$('[data-dl-doc]').forEach(b => b.addEventListener('click', ()=> downloadLatest(b.dataset.dlDoc)));
+}
+$('#docSearch').addEventListener('input', e => { docSearchTerm = e.target.value; renderDocs(); });
+$('#docCatFilter').addEventListener('change', e => { docCatFilter = e.target.value; renderDocs(); });
+$('#btnNewDoc').addEventListener('click', ()=> openDocModal(null));
+
+function openManageSubsections(){
+  const s = loadStore();
+  const phaseId = parseInt($('#docPhase').value, 10) || 1;
+  const phase = s.settings.phases.find(p => p.id===phaseId);
+  $('#modalSubsTitle').textContent = `Subseções da Fase ${phase.id} — ${phase.name}`;
+  renderSubsList();
+  // resetar campos
+  $('#subsNewId').value = '';
+  $('#subsNewTitle').value = '';
+  $('#subsNewNote').value = '';
+  $('#subsNewLink').value = '';
+  $('#subsNewOrder').value = '1';
+  openModal('modalSubs');
+}
+function renderSubsList(){
+  const s = loadStore();
+  const phaseId = parseInt($('#docPhase').value, 10) || 1;
+  const phase = s.settings.phases.find(p => p.id===phaseId);
+  const subs = (phase?.subsections||[]).slice().sort((a,b)=> (a.order||0)-(b.order||0));
+  if(!subs.length){
+    $('#subsList').innerHTML = '<div class="muted" style="font-size:13.5px;padding:12px;text-align:center">Nenhuma subseção cadastrada nesta fase.</div>';
+    return;
+  }
+  $('#subsList').innerHTML = subs.map(sub => {
+    const docCount = s.documents.filter(d => d.phase===phaseId && d.sectionId===sub.id).length;
+    return `
+      <div class="version-item">
+        <div style="flex:1;min-width:200px">
+          <div class="v-title">${escapeHtml(sub.title)} <span class="muted" style="font-size:12px;font-weight:normal">(id: ${escapeHtml(sub.id)} · ordem: ${sub.order||0} · ${docCount} doc(s))</span></div>
+          ${sub.note ? `<div class="v-meta" style="margin-top:4px;font-style:italic">"${escapeHtml(sub.note)}"</div>` : ''}
+          ${sub.externalLink ? `<div class="v-meta" style="margin-top:2px"><a href="${escapeHtml(sub.externalLink)}" target="_blank" style="color:var(--corp-dark)">${escapeHtml(sub.externalLink)} ↗</a></div>` : ''}
+        </div>
+        <div class="row-actions">
+          <button class="btn btn-soft btn-xs" data-edit-sub="${escapeHtml(sub.id)}">Editar</button>
+          <button class="btn btn-danger btn-xs" data-del-sub="${escapeHtml(sub.id)}">Apagar</button>
+        </div>
+      </div>`;
+  }).join('');
+  $$('[data-del-sub]').forEach(b => b.addEventListener('click', ()=> deleteSubsection(b.dataset.delSub)));
+  $$('[data-edit-sub]').forEach(b => b.addEventListener('click', ()=> loadSubForEdit(b.dataset.editSub)));
+}
+let _editingSubId = null;
+function loadSubForEdit(id){
+  const s = loadStore();
+  const phaseId = parseInt($('#docPhase').value, 10) || 1;
+  const phase = s.settings.phases.find(p => p.id===phaseId);
+  const sub = phase.subsections.find(x => x.id===id);
+  if(!sub) return;
+  _editingSubId = id;
+  $('#subsNewId').value = sub.id;
+  $('#subsNewId').disabled = true;
+  $('#subsNewTitle').value = sub.title || '';
+  $('#subsNewNote').value = sub.note || '';
+  $('#subsNewLink').value = sub.externalLink || '';
+  $('#subsNewOrder').value = sub.order || 1;
+}
+function deleteSubsection(id){
+  const s = loadStore();
+  const phaseId = parseInt($('#docPhase').value, 10) || 1;
+  const phase = s.settings.phases.find(p => p.id===phaseId);
+  const docCount = s.documents.filter(d => d.phase===phaseId && d.sectionId===id).length;
+  const msg = docCount > 0
+    ? `Esta subseção tem ${docCount} documento(s) atribuído(s). Apagar a subseção move esses documentos para o grupo principal da fase. Continuar?`
+    : 'Apagar esta subseção?';
+  if(!confirm(msg)) return;
+  // Reset documentos
+  s.documents.forEach(d => { if(d.phase===phaseId && d.sectionId===id) d.sectionId = null; });
+  phase.subsections = phase.subsections.filter(x => x.id !== id);
+  saveStore(s);
+  renderSubsList();
+  refreshSectionDropdown();
+  toast('Subseção removida', 'warn');
+}
+
+$('#btnManageSubsections').addEventListener('click', e => { e.preventDefault(); openManageSubsections(); });
+$('#btnAddSubsection').addEventListener('click', ()=>{
+  const id = $('#subsNewId').value.trim();
+  const title = $('#subsNewTitle').value.trim();
+  if(!id || !title){ toast('ID e título obrigatórios', 'bad'); return; }
+  if(!/^[a-z0-9_-]+$/.test(id)){ toast('ID deve conter apenas letras minúsculas, números, _ ou -', 'bad'); return; }
+  const note = $('#subsNewNote').value.trim();
+  const link = $('#subsNewLink').value.trim();
+  const order = parseInt($('#subsNewOrder').value, 10) || 0;
+  const s = loadStore();
+  const phaseId = parseInt($('#docPhase').value, 10) || 1;
+  const phase = s.settings.phases.find(p => p.id===phaseId);
+  if(_editingSubId){
+    const sub = phase.subsections.find(x => x.id===_editingSubId);
+    if(sub){
+      sub.title = title; sub.note = note; sub.externalLink = link; sub.order = order;
+      _editingSubId = null;
+    }
+  } else {
+    if(phase.subsections.find(x => x.id===id)){ toast('Já existe subseção com esse ID nesta fase', 'bad'); return; }
+    phase.subsections.push({ id, title, note, externalLink:link, order });
+  }
+  saveStore(s);
+  // limpar form
+  $('#subsNewId').value = ''; $('#subsNewId').disabled = false;
+  $('#subsNewTitle').value = ''; $('#subsNewNote').value = '';
+  $('#subsNewLink').value = ''; $('#subsNewOrder').value = '1';
+  renderSubsList();
+  refreshSectionDropdown();
+  toast('Subseção salva', 'good');
+});
+
+let editingDocId = null;
+let pendingNewVersions = []; // versões adicionadas no modal antes de salvar
+function openDocModal(id){
+  editingDocId = id;
+  pendingNewVersions = [];
+  const s = loadStore();
+  const doc = id ? s.documents.find(d => d.id===id) : null;
+  $('#modalDocTitle').textContent = doc ? `Editar: ${doc.title}` : 'Novo documento';
+  $('#docId').value = id||'';
+  $('#docTitle').value = doc?.title || '';
+  $('#docCategory').value = doc?.category || '';
+  $('#docDescription').value = doc?.description || '';
+  // Popular dropdown de fases
+  $('#docPhase').innerHTML = (s.settings.phases||[]).map(p =>
+    `<option value="${p.id}">${p.id}. ${escapeHtml(p.name)}</option>`).join('');
+  $('#docPhase').value = doc?.phase || 1;
+  $('#docPhase').onchange = () => {
+    refreshSectionDropdown();
+    if(!editingDocId) $('#docOrder').value = nextDocOrder(loadStore(), parseInt($('#docPhase').value, 10) || 1, $('#docSection').value || null);
+  };
+  refreshSectionDropdown();
+  if(doc?.sectionId) $('#docSection').value = doc.sectionId;
+  $('#docSection').onchange = () => {
+    if(!editingDocId) $('#docOrder').value = nextDocOrder(loadStore(), parseInt($('#docPhase').value, 10) || 1, $('#docSection').value || null);
+  };
+  $('#docOrder').value = doc?.order || nextDocOrder(s, parseInt($('#docPhase').value, 10) || 1, $('#docSection').value || null, doc?.id);
+  $('#docViewOnly').checked = !!doc?.viewOnly;
+  $('#newVersion').value = doc ? nextVersionLabel(doc.versions||[]) : '1.0';
+  $('#newVersionNotes').value = '';
+  $('#newVersionFile').value = '';
+  $('#fileDropText').textContent = 'Clique ou arraste o arquivo (PDF, DOCX, XLSX… até ~3 MB recomendado)';
+  $('#fileDrop').classList.remove('has-file');
+  renderVersionsInModal(doc?.versions || []);
+  openModal('modalDoc');
+}
+function nextVersionLabel(arr){
+  if(!arr.length) return '1.0';
+  const last = arr[arr.length-1].version || '1.0';
+  const m = last.match(/^(\d+)(?:\.(\d+))?$/);
+  if(!m) return last + '.1';
+  const major = parseInt(m[1],10);
+  const minor = m[2] ? parseInt(m[2],10) : 0;
+  return `${major}.${minor+1}`;
+}
+
+function refreshSectionDropdown(){
+  const s = loadStore();
+  const phaseId = parseInt($('#docPhase').value, 10) || 1;
+  const phase = s.settings.phases.find(p => p.id===phaseId);
+  const subs = (phase?.subsections || []).slice().sort((a,b)=> (a.order||0)-(b.order||0));
+  $('#docSection').innerHTML = '<option value="">— Grupo principal da fase —</option>' +
+    subs.map(sub => `<option value="${escapeHtml(sub.id)}">${escapeHtml(sub.title)}</option>`).join('');
+}
+function renderVersionsInModal(versions){
+  const all = [...(versions||[]), ...pendingNewVersions];
+  $('#versionsList').innerHTML = all.length
+    ? all.map((v,i) => `
+      <div class="version-item">
+        <div>
+          <div class="v-title">v${escapeHtml(v.version||'?')} ${v.__pending ? '<span class="badge warn">pendente</span>' : ''}</div>
+          <div class="v-meta">${fmtDate(v.publishedAt)} · ${fmtSize(v.size)} · ${escapeHtml(v.filename||'—')} ${v.url ? '· <span class="badge corp">URL externa</span>' : ''}</div>
+          ${v.notes ? `<div class="v-meta" style="margin-top:4px"><em>${escapeHtml(v.notes)}</em></div>` : ''}
+        </div>
+        <div class="row-actions">
+          ${v.__pending
+            ? `<button class="btn btn-ghost btn-xs" data-rm-pending="${i - (versions?.length||0)}">Remover</button>`
+            : `<button class="btn btn-danger btn-xs" data-rm-version="${escapeHtml(v.version||'')}">Apagar</button>`
+          }
+        </div>
+      </div>
+    `).join('')
+    : '<div class="muted" style="font-size:13px;padding:8px 0">Sem versões cadastradas.</div>';
+
+  $$('[data-rm-pending]').forEach(b => b.addEventListener('click', ()=>{
+    const idx = parseInt(b.dataset.rmPending,10);
+    pendingNewVersions.splice(idx,1);
+    const s = loadStore();
+    const doc = editingDocId ? s.documents.find(d=>d.id===editingDocId) : null;
+    renderVersionsInModal(doc?.versions||[]);
+  }));
+  $$('[data-rm-version]').forEach(b => b.addEventListener('click', ()=>{
+    if(!confirm(`Apagar versão v${b.dataset.rmVersion}? Isto não afeta o histórico de eventos já registrados.`)) return;
+    const s = loadStore();
+    const doc = s.documents.find(d=>d.id===editingDocId);
+    if(!doc) return;
+    doc.versions = (doc.versions||[]).filter(v => v.version !== b.dataset.rmVersion);
+    saveStore(s);
+    renderVersionsInModal(doc.versions);
+    toast('Versão apagada', 'warn');
+  }));
+}
+
+/* upload de arquivo p/ versão */
+$('#fileDrop').addEventListener('click', ()=> $('#newVersionFile').click());
+$('#fileDrop').addEventListener('dragover', e => { e.preventDefault(); $('#fileDrop').classList.add('has-file'); });
+$('#fileDrop').addEventListener('dragleave', ()=> $('#fileDrop').classList.remove('has-file'));
+$('#fileDrop').addEventListener('drop', e => {
+  e.preventDefault();
+  const f = e.dataTransfer.files?.[0];
+  if(f){ $('#newVersionFile').files = e.dataTransfer.files; updateFilePreview(); }
+});
+$('#newVersionFile').addEventListener('change', updateFilePreview);
+function updateFilePreview(){
+  const f = $('#newVersionFile').files?.[0];
+  if(!f){ $('#fileDropText').textContent = 'Clique ou arraste o arquivo (PDF, DOCX, XLSX… até ~3 MB recomendado)'; $('#fileDrop').classList.remove('has-file'); return; }
+  $('#fileDropText').textContent = `${f.name} · ${fmtSize(f.size)}`;
+  $('#fileDrop').classList.add('has-file');
+}
+
+$('#btnAddVersion').addEventListener('click', async ()=>{
+  const file = $('#newVersionFile').files?.[0];
+  const versionLabel = $('#newVersion').value.trim();
+  const notes = $('#newVersionNotes').value.trim();
+  if(!versionLabel){ toast('Informe o rótulo da versão', 'bad'); return; }
+  if(!file){ toast('Escolha um arquivo, ou use "Versão por URL externa"', 'warn'); return; }
+  if(file.size > 4*1024*1024){
+    if(!confirm(`O arquivo tem ${fmtSize(file.size)}. Arquivos grandes podem estourar o limite do localStorage. Continuar mesmo assim?`)) return;
+  }
+  const dataUrl = await readAsDataURL(file);
+  pendingNewVersions.push({
+    version: versionLabel,
+    filename: file.name,
+    mimeType: file.type,
+    size: file.size,
+    data: dataUrl,
+    url: null,
+    publishedAt: new Date().toISOString(),
+    notes,
+    __pending: true
+  });
+  $('#newVersion').value = nextVersionLabel(pendingNewVersions);
+  $('#newVersionNotes').value = '';
+  $('#newVersionFile').value = '';
+  updateFilePreview();
+  const s = loadStore();
+  const doc = editingDocId ? s.documents.find(d=>d.id===editingDocId) : null;
+  renderVersionsInModal(doc?.versions||[]);
+  toast('Versão adicionada (pendente até salvar)', 'good');
+});
+function readAsDataURL(file){
+  return new Promise((res, rej)=>{
+    const r = new FileReader();
+    r.onload = ()=> res(r.result);
+    r.onerror = rej;
+    r.readAsDataURL(file);
+  });
+}
+
+$('#btnAddUrlVersion').addEventListener('click', ()=>{
+  $('#urlValue').value = '';
+  $('#urlFilename').value = '';
+  $('#urlSize').value = '';
+  openModal('modalUrl');
+});
+$('#btnConfirmUrl').addEventListener('click', ()=>{
+  const url = $('#urlValue').value.trim();
+  const filename = $('#urlFilename').value.trim() || 'arquivo.pdf';
+  const size = parseInt($('#urlSize').value||'0', 10) || 0;
+  const versionLabel = $('#newVersion').value.trim() || '1.0';
+  const notes = $('#newVersionNotes').value.trim();
+  if(!url){ toast('Informe a URL', 'bad'); return; }
+  pendingNewVersions.push({
+    version: versionLabel,
+    filename, mimeType: '',
+    size, data: null, url,
+    publishedAt: new Date().toISOString(),
+    notes, __pending: true
+  });
+  $('#newVersion').value = nextVersionLabel(pendingNewVersions);
+  $('#newVersionNotes').value = '';
+  closeModal('modalUrl');
+  const s = loadStore();
+  const doc = editingDocId ? s.documents.find(d=>d.id===editingDocId) : null;
+  renderVersionsInModal(doc?.versions||[]);
+  toast('Versão por URL adicionada (pendente)', 'good');
+});
+
+async function autoCommitPendingFileIfAny(){
+  // Se o usuário selecionou arquivo e preencheu versão mas não clicou em "Adicionar versão",
+  // adicionamos automaticamente antes de salvar (UX defensiva).
+  const file = $('#newVersionFile').files?.[0];
+  const versionLabel = $('#newVersion').value.trim();
+  if(!file) return false;
+  if(!versionLabel){ toast('Informe o rótulo da versão antes de salvar', 'bad', 4000); return 'error'; }
+  if(file.size > 4*1024*1024){
+    if(!confirm(`O arquivo tem ${fmtSize(file.size)}. Arquivos grandes podem estourar o limite do localStorage. Continuar mesmo assim?`)) return 'error';
+  }
+  const dataUrl = await readAsDataURL(file);
+  pendingNewVersions.push({
+    version: versionLabel,
+    filename: file.name,
+    mimeType: file.type,
+    size: file.size,
+    data: dataUrl,
+    url: null,
+    publishedAt: new Date().toISOString(),
+    notes: $('#newVersionNotes').value.trim()
+  });
+  // limpa inputs para evitar duplo-add em caso de re-submit
+  $('#newVersionFile').value = '';
+  $('#newVersionNotes').value = '';
+  updateFilePreview();
+  return true;
+}
+
+$('#btnSaveDoc').addEventListener('click', async ()=>{
+  const title = $('#docTitle').value.trim();
+  const category = $('#docCategory').value.trim() || 'Geral';
+  const description = $('#docDescription').value.trim();
+  if(!title){ toast('Título é obrigatório', 'bad'); return; }
+
+  // FIX v1.1.1: auto-commit do arquivo pendente antes de salvar
+  const auto = await autoCommitPendingFileIfAny();
+  if(auto === 'error') return;
+
+  const s = loadStore();
+  let doc;
+  const phase = parseInt($('#docPhase').value, 10) || 1;
+  const viewOnly = $('#docViewOnly').checked;
+  const sectionId = $('#docSection').value || null;
+  const order = Math.max(1, parseInt($('#docOrder').value, 10) || nextDocOrder(s, phase, sectionId, editingDocId));
+  if(editingDocId){
+    doc = s.documents.find(d => d.id===editingDocId);
+    if(!doc){ toast('Documento não encontrado', 'bad'); return; }
+    doc.title = title;
+    doc.category = category;
+    doc.description = description;
+    doc.phase = phase;
+    doc.viewOnly = viewOnly;
+    doc.sectionId = sectionId;
+    doc.order = order;
+  } else {
+    doc = {
+      id: uid('doc'),
+      title, category, description,
+      phase, viewOnly, sectionId, order,
+      createdAt: new Date().toISOString(),
+      versions: [],
+      visibility: 'all'
+    };
+    s.documents.push(doc);
+  }
+  // commit pending versions (inclui o auto-commit)
+  if(pendingNewVersions.length){
+    pendingNewVersions.forEach(v => { delete v.__pending; });
+    doc.versions = (doc.versions||[]).concat(pendingNewVersions);
+  }
+  if(saveStore(s)){
+    closeModal('modalDoc');
+    renderDocs();
+    toast(auto===true ? 'Documento salvo com versão anexada' : 'Documento salvo', 'good');
+  }
+});
+
+function deleteDoc(id){
+  confirmAction(
+    'Excluir documento',
+    'Tem certeza que deseja excluir este documento e todas as suas versões? Esta ação não pode ser desfeita. Os eventos de download passados permanecem registrados.',
+    ()=>{
+      const s = loadStore();
+      s.documents = s.documents.filter(d => d.id!==id);
+      saveStore(s);
+      renderDocs();
+      toast('Documento excluído', 'warn');
+    }
+  );
+}
+function downloadLatest(id){
+  const s = loadStore();
+  const doc = s.documents.find(d => d.id===id);
+  if(!doc || !doc.versions || !doc.versions.length){ toast('Sem versão para baixar', 'warn'); return; }
+  const v = doc.versions[doc.versions.length-1];
+  if(v.data){
+    const a = document.createElement('a');
+    a.href = v.data;
+    a.download = v.filename || (doc.title+'.bin');
+    document.body.appendChild(a); a.click(); a.remove();
+  } else if(v.url){
+    window.open(v.url, '_blank', 'noopener');
+  }
+}
+
+/* ---------- PROSPECTS / PIPELINE ---------- */
+let prospectSearchTerm = '';
+let prospectStageFilter = '';
+let prospectOwnerFilter = '';
+function toLocalDateTimeInput(iso){
+  if(!iso) return '';
+  const d = new Date(iso);
+  if(Number.isNaN(d.getTime())) return '';
+  const pad = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+function fromLocalDateTimeInput(value){
+  if(!value) return '';
+  const d = new Date(value);
+  return Number.isNaN(d.getTime()) ? '' : d.toISOString();
+}
+function populateProspectSelects(selectedStage){
+  const opts = PROSPECT_STAGES.map(s => `<option value="${s.id}">${escapeHtml(s.label)}</option>`).join('');
+  $('#prospectStage').innerHTML = opts;
+  $('#interactionStage').innerHTML = opts;
+  $('#prospectStage').value = selectedStage || 'mapeado';
+  $('#interactionStage').value = selectedStage || 'mapeado';
+}
+function populateOwnerFilters(s){
+  const owners = Array.from(new Set((s.prospects||[]).map(p=>p.owner).filter(Boolean))).sort((a,b)=>a.localeCompare(b, 'pt-BR'));
+  $('#prospectOwnerFilter').innerHTML = '<option value="">Todos os responsáveis</option>' +
+    owners.map(o => `<option value="${escapeHtml(o)}">${escapeHtml(o)}</option>`).join('');
+  $('#prospectOwnerFilter').value = prospectOwnerFilter;
+  $('#ownerList').innerHTML = owners.map(o => `<option value="${escapeHtml(o)}"></option>`).join('');
+}
+function populateStageFilter(){
+  $('#prospectStageFilter').innerHTML = '<option value="">Todos os estágios</option>' +
+    PROSPECT_STAGES.map(s => `<option value="${s.id}">${escapeHtml(s.label)}</option>`).join('');
+  $('#prospectStageFilter').value = prospectStageFilter;
+}
+function renderProspects(){
+  const s = loadStore();
+  s.prospects = s.prospects || [];
+  populateStageFilter();
+  populateOwnerFilters(s);
+  const term = prospectSearchTerm.toLowerCase().trim();
+  const today = new Date(); today.setHours(0,0,0,0);
+  const rows = s.prospects
+    .filter(p => !prospectStageFilter || p.stage === prospectStageFilter)
+    .filter(p => !prospectOwnerFilter || p.owner === prospectOwnerFilter)
+    .filter(p => {
+      if(!term) return true;
+      const hay = [
+        p.name, p.company, p.role, p.email, p.whatsapp, p.source, p.owner,
+        p.stage, p.priority, p.fit, p.potentialTicket, p.proposal, p.notes,
+        ...(p.interactions||[]).map(i => `${i.by||''} ${i.type||''} ${i.summary||''}`)
+      ].join(' ').toLowerCase();
+      return hay.includes(term);
+    })
+    .sort((a,b)=> {
+      const nextA = a.nextActionDate || '9999-12-31';
+      const nextB = b.nextActionDate || '9999-12-31';
+      if(nextA !== nextB) return nextA.localeCompare(nextB);
+      return (b.updatedAt||b.createdAt||'').localeCompare(a.updatedAt||a.createdAt||'');
+    })
+    .map(p => {
+      const stage = prospectStageMeta(p.stage);
+      const priority = prospectPriorityMeta(p.priority);
+      const last = prospectLastInteraction(p);
+      const due = p.nextActionDate ? new Date(p.nextActionDate + 'T00:00:00') : null;
+      const dueClass = due && due < today && !['convertido','descartado'].includes(p.stage) ? 'bad' : (due ? 'warn' : '');
+      return `<tr>
+        <td>
+          <div style="font-weight:600">${escapeHtml(p.name)}</div>
+          <div class="muted" style="font-size:12.5px">${escapeHtml(p.company||'—')}${p.role ? ' · '+escapeHtml(p.role) : ''}</div>
+          <div class="muted" style="font-size:12.5px">${escapeHtml(p.email||'')}${p.whatsapp ? ' · '+escapeHtml(p.whatsapp) : ''}</div>
+        </td>
+        <td>${escapeHtml(p.owner||'—')}<div class="muted" style="font-size:12.5px">${escapeHtml(p.source||'')}</div></td>
+        <td><span class="badge ${stage.badge}">${escapeHtml(stage.label)}</span></td>
+        <td><span class="badge ${priority.badge}">${escapeHtml(priority.label)}</span></td>
+        <td>
+          <div>${last ? fmtDate(last.at) : (p.lastContactAt ? fmtDate(p.lastContactAt) : '—')}</div>
+          <div class="muted" style="font-size:12.5px">${last ? escapeHtml(last.type||'interação') + (last.by ? ' · '+escapeHtml(last.by) : '') : ''}</div>
+        </td>
+        <td><span class="badge ${dueClass}">${formatDateOnly(p.nextActionDate)}</span></td>
+        <td>
+          <div>${escapeHtml(p.proposal || p.potentialTicket || p.fit || '—')}</div>
+          <div class="muted" style="font-size:12.5px;max-width:320px">${escapeHtml(p.notes||'')}</div>
+        </td>
+        <td class="row-actions">
+          <button class="btn btn-corp btn-xs" data-add-interaction="${p.id}">Registrar</button>
+          <button class="btn btn-soft btn-xs" data-edit-prospect="${p.id}">Editar</button>
+          ${p.stage !== 'convertido' ? `<button class="btn btn-primary btn-xs" data-convert-prospect="${p.id}">Virar investidor</button>` : ''}
+          <button class="btn btn-danger btn-xs" data-del-prospect="${p.id}">Excluir</button>
+        </td>
+      </tr>`;
+    }).join('');
+  $('#tableProspects tbody').innerHTML = rows || `<tr><td colspan="8" class="muted" style="text-align:center;padding:20px">Nenhum contato pré-acesso cadastrado. Use esta área para John, Toledo, Fabio e demais admins alinharem conversas antes de liberar documentos.</td></tr>`;
+  $$('[data-edit-prospect]').forEach(b => b.addEventListener('click', ()=> openProspectModal(b.dataset.editProspect)));
+  $$('[data-add-interaction]').forEach(b => b.addEventListener('click', ()=> openProspectInteractionModal(b.dataset.addInteraction)));
+  $$('[data-convert-prospect]').forEach(b => b.addEventListener('click', ()=> convertProspectToInvestor(b.dataset.convertProspect)));
+  $$('[data-del-prospect]').forEach(b => b.addEventListener('click', ()=> deleteProspect(b.dataset.delProspect)));
+}
+function renderProspectActivity(p){
+  const interactions = (p?.interactions||[]).slice().sort((a,b)=> (b.at||'').localeCompare(a.at||''));
+  if(!p) return '';
+  if(!interactions.length) return '<div class="muted" style="font-size:13px">Nenhuma interação registrada ainda.</div>';
+  return `<div class="section-card" style="box-shadow:none;margin-top:0">
+    <div class="section-head"><h3 style="font-size:14px">Histórico do relacionamento</h3></div>
+    <div class="section-body">
+      ${interactions.map(i => `<div style="padding:10px 0;border-bottom:1px solid var(--line)">
+        <div style="font-weight:600">${fmtDate(i.at)} · ${escapeHtml(i.type||'interação')} ${i.by ? '· '+escapeHtml(i.by) : ''}</div>
+        <div style="font-size:13.5px;margin-top:4px">${escapeHtml(i.summary||'')}</div>
+        ${i.nextActionDate ? `<div class="muted" style="font-size:12.5px;margin-top:4px">Próximo follow-up: ${formatDateOnly(i.nextActionDate)}</div>` : ''}
+      </div>`).join('')}
+    </div>
+  </div>`;
+}
+function openProspectModal(id){
+  const s = loadStore();
+  const p = id ? s.prospects.find(x => x.id===id) : null;
+  populateProspectSelects(p?.stage || 'mapeado');
+  populateOwnerFilters(s);
+  $('#modalProspectTitle').textContent = p ? `Editar: ${p.name}` : 'Novo contato';
+  $('#prospectId').value = id || '';
+  $('#prospectName').value = p?.name || '';
+  $('#prospectCompany').value = p?.company || '';
+  $('#prospectRole').value = p?.role || '';
+  $('#prospectEmail').value = p?.email || '';
+  $('#prospectWhats').value = p?.whatsapp || '';
+  $('#prospectSource').value = p?.source || '';
+  $('#prospectOwner').value = p?.owner || '';
+  $('#prospectStage').value = p?.stage || 'mapeado';
+  $('#prospectPriority').value = p?.priority || 'media';
+  $('#prospectTicket').value = p?.potentialTicket || '';
+  $('#prospectProposal').value = p?.proposal || '';
+  $('#prospectNextAction').value = p?.nextActionDate || '';
+  $('#prospectLastContact').value = toLocalDateTimeInput(p?.lastContactAt);
+  $('#prospectFit').value = p?.fit || '';
+  $('#prospectNotes').value = p?.notes || '';
+  $('#prospectActivityBlock').innerHTML = renderProspectActivity(p);
+  openModal('modalProspect');
+}
+function saveProspectFromModal(){
+  const name = $('#prospectName').value.trim();
+  if(!name){ toast('Nome do contato é obrigatório', 'bad'); return; }
+  const s = loadStore();
+  const id = $('#prospectId').value;
+  const now = new Date().toISOString();
+  let p;
+  if(id){
+    p = s.prospects.find(x => x.id===id);
+    if(!p){ toast('Contato não encontrado', 'bad'); return; }
+  } else {
+    p = { id: uid('pros'), createdAt: now, interactions:[] };
+    s.prospects.push(p);
+  }
+  p.name = name;
+  p.company = $('#prospectCompany').value.trim();
+  p.role = $('#prospectRole').value.trim();
+  p.email = $('#prospectEmail').value.trim();
+  p.whatsapp = $('#prospectWhats').value.trim();
+  p.source = $('#prospectSource').value.trim();
+  p.owner = $('#prospectOwner').value.trim();
+  p.stage = $('#prospectStage').value || 'mapeado';
+  p.priority = $('#prospectPriority').value || 'media';
+  p.potentialTicket = $('#prospectTicket').value.trim();
+  p.proposal = $('#prospectProposal').value.trim();
+  p.nextActionDate = $('#prospectNextAction').value;
+  p.lastContactAt = fromLocalDateTimeInput($('#prospectLastContact').value);
+  p.fit = $('#prospectFit').value.trim();
+  p.notes = $('#prospectNotes').value.trim();
+  p.updatedAt = now;
+  normalizeProspect(p);
+  if(saveStore(s)){
+    closeModal('modalProspect');
+    renderProspects();
+    renderDashboard();
+    toast('Contato salvo', 'good');
+  }
+}
+$('#btnSaveProspect').addEventListener('click', saveProspectFromModal);
+$('#btnNewProspect').addEventListener('click', ()=> openProspectModal(null));
+$('#prospectSearch').addEventListener('input', e => { prospectSearchTerm = e.target.value; renderProspects(); });
+$('#prospectStageFilter').addEventListener('change', e => { prospectStageFilter = e.target.value; renderProspects(); });
+$('#prospectOwnerFilter').addEventListener('change', e => { prospectOwnerFilter = e.target.value; renderProspects(); });
+
+function openProspectInteractionModal(id){
+  const s = loadStore();
+  const p = s.prospects.find(x => x.id===id);
+  if(!p){ toast('Contato não encontrado', 'bad'); return; }
+  populateProspectSelects(p.stage || 'mapeado');
+  populateOwnerFilters(s);
+  $('#modalProspectInteractionTitle').textContent = `Registrar interação: ${p.name}`;
+  $('#interactionProspectId').value = id;
+  $('#interactionAt').value = toLocalDateTimeInput(new Date().toISOString());
+  $('#interactionBy').value = p.owner || '';
+  $('#interactionType').value = p.stage === 'proposta_enviada' ? 'proposal' : 'whatsapp';
+  $('#interactionStage').value = p.stage || 'mapeado';
+  $('#interactionSummary').value = '';
+  $('#interactionNextAction').value = p.nextActionDate || '';
+  openModal('modalProspectInteraction');
+}
+$('#btnSaveProspectInteraction').addEventListener('click', ()=>{
+  const id = $('#interactionProspectId').value;
+  const summary = $('#interactionSummary').value.trim();
+  if(!summary){ toast('Resumo da interação é obrigatório', 'bad'); return; }
+  const s = loadStore();
+  const p = s.prospects.find(x => x.id===id);
+  if(!p){ toast('Contato não encontrado', 'bad'); return; }
+  const at = fromLocalDateTimeInput($('#interactionAt').value) || new Date().toISOString();
+  const interaction = {
+    id: uid('int'),
+    at,
+    by: $('#interactionBy').value.trim(),
+    type: $('#interactionType').value,
+    summary,
+    nextActionDate: $('#interactionNextAction').value
+  };
+  p.interactions = p.interactions || [];
+  p.interactions.push(interaction);
+  p.stage = $('#interactionStage').value || p.stage || 'mapeado';
+  p.nextActionDate = interaction.nextActionDate;
+  p.lastContactAt = at;
+  p.updatedAt = new Date().toISOString();
+  normalizeProspect(p);
+  if(saveStore(s)){
+    closeModal('modalProspectInteraction');
+    renderProspects();
+    renderDashboard();
+    toast('Interação registrada', 'good');
+  }
+});
+function convertProspectToInvestor(id){
+  const s = loadStore();
+  const p = s.prospects.find(x => x.id===id);
+  if(!p){ toast('Contato não encontrado', 'bad'); return; }
+  confirmAction(
+    'Converter em investidor',
+    `Criar cadastro de investidor para ${p.name} e marcar este relacionamento como convertido?`,
+    ()=>{
+      const now = new Date().toISOString();
+      const cleanWhats = (p.whatsapp||'').replace(/\D/g,'');
+      let inv = null;
+      if(p.email) inv = s.investors.find(i => (i.email||'').toLowerCase().trim() === p.email.toLowerCase().trim());
+      if(!inv && cleanWhats) inv = s.investors.find(i => (i.whatsapp||'').replace(/\D/g,'') === cleanWhats);
+      if(!inv){
+        inv = { id: uid('inv'), createdAt: now, source:'pipeline', totalSessions:0, currentPhase:1, phaseHistory:[], phaseRequests:[] };
+        s.investors.push(inv);
+      }
+      inv.name = p.name;
+      inv.company = p.company;
+      inv.email = p.email;
+      inv.whatsapp = p.whatsapp;
+      inv.active = true;
+      inv.tags = Array.from(new Set([...(inv.tags||[]), 'pipeline']));
+      inv.notes = [
+        inv.notes || '',
+        `Origem pipeline: responsável ${p.owner||'—'}, estágio ${prospectStageMeta(p.stage).label}, proposta/contexto: ${p.proposal||p.potentialTicket||'—'}.`,
+        p.notes || '',
+        ...(p.interactions||[]).map(i => `${fmtDate(i.at)} · ${i.by||'—'} · ${i.type||'interação'}: ${i.summary||''}`)
+      ].filter(Boolean).join('\n\n');
+      p.stage = 'convertido';
+      p.convertedAt = now;
+      p.convertedInvestorId = inv.id;
+      p.updatedAt = now;
+      saveStore(s);
+      renderProspects(); renderInvestors(); renderDashboard();
+      toast('Contato convertido em investidor', 'good');
+    }
+  );
+}
+function deleteProspect(id){
+  confirmAction(
+    'Excluir contato',
+    'Excluir este relacionamento e seu histórico interno? Esta ação não altera investidores já convertidos.',
+    ()=>{
+      const s = loadStore();
+      s.prospects = (s.prospects||[]).filter(p => p.id!==id);
+      saveStore(s);
+      renderProspects(); renderDashboard();
+      toast('Contato excluído', 'warn');
+    }
+  );
+}
+$('#btnExportProspects').addEventListener('click', ()=>{
+  const s = loadStore();
+  const headers = ['Nome','Empresa','Cargo','Email','WhatsApp','Origem','Responsavel','Estagio','Prioridade','Ticket','Proposta','Ultima conversa','Proximo follow-up','Notas','Historico'];
+  const rows = (s.prospects||[]).map(p => [
+    p.name, p.company, p.role, p.email, p.whatsapp, p.source, p.owner,
+    prospectStageMeta(p.stage).label, prospectPriorityMeta(p.priority).label,
+    p.potentialTicket, p.proposal, p.lastContactAt, p.nextActionDate, p.notes,
+    (p.interactions||[]).map(i => `${i.at} | ${i.by||''} | ${i.type||''} | ${i.summary||''}`).join(' / ')
+  ]);
+  const csv = [headers, ...rows].map(r => r.map(v => `"${String(v||'').replace(/"/g,'""')}"`).join(';')).join('\n');
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'ixovet_relacionamentos.csv';
+  document.body.appendChild(a); a.click(); a.remove();
+  toast('Relacionamentos exportados', 'good');
+});
+
+/* ---------- INVESTORS ---------- */
+let invSearchTerm = '';
+function getPendingPhaseRequest(inv){
+  return (inv.phaseRequests || [])
+    .filter(r => r.status === 'pending')
+    .sort((a,b)=> (a.requestedAt||'').localeCompare(b.requestedAt||''))[0] || null;
+}
+function renderInvestors(){
+  const s = loadStore();
+  const term = invSearchTerm.toLowerCase().trim();
+  const rows = s.investors
+    .filter(i => !term || (i.name+' '+(i.company||'')+' '+(i.email||'')+' '+(i.whatsapp||'')+' '+(i.tags||[]).join(' ')).toLowerCase().includes(term))
+    .sort((a,b)=> (b.lastSeenAt||b.createdAt||'').localeCompare(a.lastSeenAt||a.createdAt||''))
+    .map(i => {
+      const sourceBadge = i.source==='nda'
+        ? '<span class="badge corp" title="Criado automaticamente quando o investidor entrou pelo portal e aceitou o NDA inicial">Cadastro via portal</span>'
+        : '<span class="badge brand" title="Cadastrado manualmente pelo admin">Cadastro admin</span>';
+      const sessions = i.totalSessions || 0;
+      const phs = s.settings.phases || [];
+      const phObj = phs.find(p => p.id === (i.currentPhase || 1));
+      const phLabel = phObj ? `${phObj.id}. ${phObj.name}` : `Fase ${i.currentPhase||1}`;
+      const phClass = (i.currentPhase||1) === phs.length ? 'accent' : ((i.currentPhase||1) === 1 ? 'brand' : 'corp');
+      const pendingReq = getPendingPhaseRequest(i);
+      const pendingPhase = pendingReq ? phs.find(p => p.id === pendingReq.phase) : null;
+      const pendingLabel = pendingReq ? `${pendingReq.phase}. ${pendingPhase?.name || pendingReq.phaseName || 'fase'}` : '';
+      return `<tr>
+        <td>
+          <div style="font-weight:600">${escapeHtml(i.name)}</div>
+          <div class="muted" style="font-size:12.5px">${(i.tags||[]).map(t=> `<span class="badge accent" style="margin-right:4px">${escapeHtml(t)}</span>`).join('') }</div>
+        </td>
+        <td>${escapeHtml(i.company||'—')}</td>
+        <td>
+          <div>${escapeHtml(i.email||'—')}</div>
+          <div class="muted" style="font-size:12.5px">${escapeHtml(i.whatsapp||'')}</div>
+        </td>
+        <td>${sourceBadge}</td>
+        <td>
+          <span class="badge ${phClass}">${escapeHtml(phLabel)}</span>
+          ${pendingReq ? `<div style="margin-top:6px"><span class="badge warn">Aguardando aprovaÃ§Ã£o: ${escapeHtml(pendingLabel)}</span></div>` : ''}
+        </td>
+        <td>${i.active!==false ? '<span class="badge good">Ativo</span>' : '<span class="badge bad">Inativo</span>'}</td>
+        <td><span class="badge corp">${sessions}</span></td>
+        <td>
+          <div>${fmtDate(i.createdAt)}</div>
+          <div class="muted" style="font-size:12.5px">${i.lastSeenAt ? 'visita: '+fmtDate(i.lastSeenAt) : '—'}</div>
+        </td>
+        <td class="row-actions">
+          ${pendingReq ? `<button class="btn btn-corp btn-xs" data-approve-phase="${i.id}">Aprovar fase</button><button class="btn btn-soft btn-xs" data-reject-phase="${i.id}">Rejeitar</button>` : ''}
+          <button class="btn btn-soft btn-xs" data-edit-inv="${i.id}">Editar</button>
+          <button class="btn btn-danger btn-xs" data-del-inv="${i.id}">Excluir</button>
+        </td>
+      </tr>`;
+    }).join('');
+  $('#tableInv tbody').innerHTML = rows || `<tr><td colspan="9" class="muted" style="text-align:center;padding:20px">Nenhum investidor cadastrado. Use <strong>"Reconciliar histórico"</strong> se já houve aceites de NDA antes desta versão.</td></tr>`;
+
+  $$('[data-edit-inv]').forEach(b => b.addEventListener('click', ()=> openInvModal(b.dataset.editInv)));
+  $$('[data-del-inv]').forEach(b => b.addEventListener('click', ()=> deleteInv(b.dataset.delInv)));
+  $$('[data-approve-phase]').forEach(b => b.addEventListener('click', ()=> approvePhaseRequest(b.dataset.approvePhase)));
+  $$('[data-reject-phase]').forEach(b => b.addEventListener('click', ()=> rejectPhaseRequest(b.dataset.rejectPhase)));
+}
+$('#invSearch').addEventListener('input', e => { invSearchTerm = e.target.value; renderInvestors(); });
+$('#btnNewInvestor').addEventListener('click', ()=> openInvModal(null));
+
+function openInvModal(id){
+  const s = loadStore();
+  const inv = id ? s.investors.find(i => i.id===id) : null;
+  $('#modalInvTitle').textContent = inv ? `Editar: ${inv.name}` : 'Novo investidor';
+  $('#invId').value = id||'';
+  $('#invName').value = inv?.name || '';
+  $('#invCompany').value = inv?.company || '';
+  $('#invEmail').value = inv?.email || '';
+  $('#invWhats').value = inv?.whatsapp || '';
+  $('#invActive').value = String(inv?.active!==false);
+  // Popular fases
+  $('#invCurrentPhase').innerHTML = (s.settings.phases||[]).map(p =>
+    `<option value="${p.id}">${p.id}. ${escapeHtml(p.name)}</option>`).join('');
+  $('#invCurrentPhase').value = inv?.currentPhase || 1;
+  $('#invTags').value = (inv?.tags||[]).join(', ');
+  $('#invNotes').value = inv?.notes || '';
+  openModal('modalInv');
+}
+$('#btnSaveInv').addEventListener('click', ()=>{
+  const name = $('#invName').value.trim();
+  if(!name){ toast('Nome é obrigatório', 'bad'); return; }
+  const s = loadStore();
+  const id = $('#invId').value;
+  let inv;
+  if(id){
+    inv = s.investors.find(x => x.id===id);
+    if(!inv){ toast('Investidor não encontrado','bad'); return; }
+  } else {
+    inv = { id: uid('inv'), createdAt: new Date().toISOString() };
+    s.investors.push(inv);
+  }
+  inv.name = name;
+  inv.company = $('#invCompany').value.trim();
+  inv.email = $('#invEmail').value.trim();
+  inv.whatsapp = $('#invWhats').value.trim();
+  inv.active = $('#invActive').value === 'true';
+  inv.tags = $('#invTags').value.split(',').map(s=>s.trim()).filter(Boolean);
+  inv.notes = $('#invNotes').value.trim();
+  // Fase atual: se mudou, registra no histórico
+  const newPhase = parseInt($('#invCurrentPhase').value, 10) || 1;
+  if(inv.currentPhase !== newPhase){
+    const oldPhase = inv.currentPhase || 1;
+    inv.currentPhase = newPhase;
+    inv.phaseHistory = inv.phaseHistory || [];
+    inv.phaseHistory.push({ phase:newPhase, at:new Date().toISOString(), via:'admin manual', from:oldPhase });
+    pushEvent(s, { type:'phase_advance', investorId:inv.id, meta:{ from:oldPhase, to:newPhase, via:'admin' } });
+  }
+  if(!Array.isArray(inv.phaseHistory)) inv.phaseHistory = [];
+  if(!Array.isArray(inv.phaseRequests)) inv.phaseRequests = [];
+  if(saveStore(s)){
+    closeModal('modalInv');
+    renderInvestors();
+    toast('Investidor salvo', 'good');
+  }
+});
+function deleteInv(id){
+  confirmAction(
+    'Excluir investidor',
+    'Tem certeza que deseja excluir este cadastro? Sessões e eventos antigos permanecerão registrados, apenas o cadastro de pré-aprovação é removido.',
+    ()=>{
+      const s = loadStore();
+      s.investors = s.investors.filter(i => i.id!==id);
+      saveStore(s);
+      renderInvestors();
+      toast('Investidor excluído', 'warn');
+    }
+  );
+}
+
+function approvePhaseRequest(id){
+  const s = loadStore();
+  const inv = s.investors.find(i => i.id === id);
+  const req = inv ? getPendingPhaseRequest(inv) : null;
+  if(!inv || !req){ toast('Pedido de fase não encontrado', 'bad'); return; }
+  const phase = (s.settings.phases || []).find(p => p.id === req.phase);
+  confirmAction(
+    'Aprovar avanço de fase',
+    `Liberar ${inv.name} para a Fase ${req.phase}${phase ? ' - '+phase.name : ''}?`,
+    ()=>{
+      const now = new Date().toISOString();
+      const oldPhase = inv.currentPhase || 1;
+      req.status = 'approved';
+      req.approvedAt = now;
+      req.approvedBy = 'admin';
+      inv.currentPhase = req.phase;
+      inv.phaseHistory = inv.phaseHistory || [];
+      inv.phaseHistory.push({ phase:req.phase, at:now, via:'admin aprovou aceite do termo', from:oldPhase, requestId:req.id });
+      pushEvent(s, { type:'phase_advance', investorId:inv.id, meta:{ from:oldPhase, to:req.phase, via:'admin_approval', requestId:req.id } });
+      saveStore(s);
+      renderDashboard(); renderInvestors(); renderEvents();
+      toast('Fase aprovada e liberada ao investidor', 'good');
+    }
+  );
+}
+function rejectPhaseRequest(id){
+  const s = loadStore();
+  const inv = s.investors.find(i => i.id === id);
+  const req = inv ? getPendingPhaseRequest(inv) : null;
+  if(!inv || !req){ toast('Pedido de fase não encontrado', 'bad'); return; }
+  confirmAction(
+    'Rejeitar pedido de fase',
+    `Manter ${inv.name} na fase atual e rejeitar este pedido de liberação?`,
+    ()=>{
+      const now = new Date().toISOString();
+      req.status = 'rejected';
+      req.rejectedAt = now;
+      req.rejectedBy = 'admin';
+      pushEvent(s, { type:'phase_request_rejected', investorId:inv.id, meta:{ phase:req.phase, requestId:req.id } });
+      saveStore(s);
+      renderInvestors(); renderEvents();
+      toast('Pedido de fase rejeitado', 'warn');
+    }
+  );
+}
+
+/* Reconcilia sessões antigas em investors[] (v1.1).
+   Mesma lógica de match: email -> whatsapp -> nome+empresa.
+   Idempotente em criar (não duplica), mas SOMA totalSessions a cada execução. */
+function reconcileSessionsToInvestors(s){
+  let created = 0, updated = 0;
+  const ordered = (s.sessions||[]).slice().sort((a,b)=>
+    (a.startedAt||a.ndaAcceptedAt||'').localeCompare(b.startedAt||b.ndaAcceptedAt||''));
+
+  ordered.forEach(session => {
+    const emailKey = (session.email||'').toLowerCase().trim();
+    const whatsKey = (session.whatsapp||'').replace(/\D/g,'');
+    const nameKey  = (session.name||'').toLowerCase().trim();
+    const compKey  = (session.company||'').toLowerCase().trim();
+    if(!nameKey) return;
+
+    let inv = null;
+    if(emailKey) inv = s.investors.find(i => (i.email||'').toLowerCase().trim() === emailKey);
+    if(!inv && whatsKey) inv = s.investors.find(i => (i.whatsapp||'').replace(/\D/g,'') === whatsKey);
+    if(!inv && nameKey && compKey){
+      inv = s.investors.find(i =>
+        (i.name||'').toLowerCase().trim() === nameKey &&
+        (i.company||'').toLowerCase().trim() === compKey);
+    }
+
+    const stamp = session.startedAt || session.ndaAcceptedAt || new Date().toISOString();
+    if(inv){
+      inv.totalSessions = (inv.totalSessions||0) + 1;
+      if(!inv.lastSeenAt || stamp > inv.lastSeenAt) inv.lastSeenAt = stamp;
+      if(!inv.email && session.email) inv.email = session.email;
+      if(!inv.whatsapp && session.whatsapp) inv.whatsapp = session.whatsapp;
+      if(!inv.company && session.company) inv.company = session.company;
+      if(inv.active === undefined) inv.active = true;
+      if(!inv.source) inv.source = 'nda';
+      if(!session.investorId) session.investorId = inv.id;
+      updated++;
+    } else {
+      inv = {
+        id: uid('inv'),
+        name: session.name,
+        company: session.company,
+        email: session.email,
+        whatsapp: session.whatsapp,
+        createdAt: stamp,
+        lastSeenAt: stamp,
+        active: true,
+        source: 'nda',
+        tags: [],
+        notes: 'Reconciliado a partir do histórico de sessões.',
+        totalSessions: 1,
+        currentPhase: 1,
+        phaseHistory: [],
+        phaseRequests: []
+      };
+      s.investors.push(inv);
+      session.investorId = inv.id;
+      created++;
+    }
+  });
+
+  // vincula events que tenham sessionId mas não investorId
+  (s.events||[]).forEach(e => {
+    if(e.investorId || !e.sessionId) return;
+    const sess = s.sessions.find(x => x.id===e.sessionId);
+    if(sess && sess.investorId) e.investorId = sess.investorId;
+  });
+
+  return { created, updated };
+}
+
+document.getElementById('btnReconcile').addEventListener('click', ()=>{
+  confirmAction(
+    'Reconciliar histórico',
+    'Esta ação varre todas as sessões já registradas e cria/atualiza os cadastros de investidor correspondentes (origem "Cadastro via portal"). Atenção: rodar várias vezes incrementa o contador de sessões.',
+    ()=>{
+      const s = loadStore();
+      const { created, updated } = reconcileSessionsToInvestors(s);
+      saveStore(s);
+      renderInvestors();
+      renderDashboard();
+      toast(`Reconciliação concluída: ${created} criado(s), ${updated} atualizado(s).`, 'good', 4500);
+    }
+  );
+});
+
+/* ---------- EVENTS ---------- */
+let eventSearchTerm = '';
+let eventTypeFilter = '';
+function renderEvents(){
+  const s = loadStore();
+  const term = eventSearchTerm.toLowerCase().trim();
+  const list = s.events.slice().sort((a,b)=> b.at.localeCompare(a.at)).filter(e => {
+    if(eventTypeFilter && e.type!==eventTypeFilter) return false;
+    if(!term) return true;
+    const sess = s.sessions.find(x => x.id===e.sessionId);
+    const inv = e.investorId ? s.investors.find(x => x.id===e.investorId) : null;
+    const doc = s.documents.find(d => d.id===e.documentId);
+    const hay = [
+      sess?.name, sess?.company, inv?.name, inv?.company, doc?.title, e.type, e.versionLabel
+    ].filter(Boolean).join(' ').toLowerCase();
+    return hay.includes(term);
+  });
+  $('#eventsList').innerHTML = list.length
+    ? list.map(e => renderEventRow(e, s)).join('')
+    : '<div class="muted" style="padding:20px;text-align:center">Nenhum evento corresponde aos filtros.</div>';
+}
+$('#eventSearch').addEventListener('input', e => { eventSearchTerm = e.target.value; renderEvents(); });
+$('#eventTypeFilter').addEventListener('change', e => { eventTypeFilter = e.target.value; renderEvents(); });
+
+$('#btnExportEvents').addEventListener('click', ()=>{
+  const s = loadStore();
+  const rows = [['data_iso','tipo','investidor','empresa','documento','versao']];
+  s.events.slice().sort((a,b)=> a.at.localeCompare(b.at)).forEach(e => {
+    const sess = s.sessions.find(x => x.id===e.sessionId);
+    const inv = e.investorId ? s.investors.find(x => x.id===e.investorId) : null;
+    const doc = s.documents.find(d => d.id===e.documentId);
+    rows.push([
+      e.at, e.type, sess?.name||inv?.name||'', sess?.company||inv?.company||'', doc?.title||'', e.versionLabel||''
+    ]);
+  });
+  const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'dataroom_eventos.csv';
+  document.body.appendChild(a); a.click(); a.remove();
+  toast('CSV gerado', 'good');
+});
+
+/* ---------- NDA ---------- */
+function renderNDA(){
+  const s = loadStore();
+  $('#ndaTitle').value = s.nda.title || '';
+  $('#ndaContent').value = s.nda.content || DEFAULT_NDA;
+  $('#ndaVersion').value = `v${s.nda.version}`;
+  $('#ndaMeta').textContent = `Última atualização: ${fmtDate(s.nda.updatedAt)}`;
+}
+$('#btnNDASave').addEventListener('click', ()=>{
+  const s = loadStore();
+  s.nda.title = $('#ndaTitle').value.trim() || 'Termo de Confidencialidade (NDA)';
+  s.nda.content = $('#ndaContent').value;
+  s.nda.updatedAt = new Date().toISOString();
+  if(saveStore(s)){ renderNDA(); toast('NDA salvo (sem novo número de versão)', 'good'); }
+});
+$('#btnNDAVersionUp').addEventListener('click', ()=>{
+  const s = loadStore();
+  s.nda.title = $('#ndaTitle').value.trim() || 'Termo de Confidencialidade (NDA)';
+  s.nda.content = $('#ndaContent').value;
+  s.nda.version = (s.nda.version||1) + 1;
+  s.nda.updatedAt = new Date().toISOString();
+  if(saveStore(s)){ renderNDA(); toast(`NDA atualizado para v${s.nda.version}`, 'good'); }
+});
+$('#btnNDAReset').addEventListener('click', ()=>{
+  if(!confirm('Restaurar o texto padrão do NDA? Você poderá editar antes de salvar.')) return;
+  $('#ndaContent').value = DEFAULT_NDA;
+});
+
+/* ---------- SETTINGS ---------- */
+function renderSettings(){
+  const s = loadStore();
+  const inst = s.settings.institutional || DEFAULT_INSTITUTIONAL;
+  const hero = inst.hero || DEFAULT_INSTITUTIONAL.hero;
+  const kpis = (inst.kpis && inst.kpis.length ? inst.kpis : DEFAULT_INSTITUTIONAL.kpis);
+  const diffs = (inst.diferenciais && inst.diferenciais.length ? inst.diferenciais : DEFAULT_INSTITUTIONAL.diferenciais);
+  const contact = inst.contact || DEFAULT_INSTITUTIONAL.contact;
+  $('#setName').value = s.settings.company.name;
+  $('#setSubtitle').value = s.settings.company.subtitle;
+  $('#setWatermark').value = s.settings.watermark;
+  $('#setPhaseApprovalMode').value = s.settings.phaseApprovalMode || 'auto';
+  $('#setBrand').value = s.settings.palette.brand;
+  $('#setAccent').value = s.settings.palette.accent;
+  $('#setCorp').value = s.settings.palette.corporate;
+  $('#setHeroTagline').value = hero.tagline || '';
+  $('#setHeroDescription').value = hero.description || '';
+  for(let i=0; i<4; i++){
+    const item = kpis[i] || { label:'', value:'', sub:'' };
+    $(`#setKpi${i+1}Label`).value = item.label || '';
+    $(`#setKpi${i+1}Value`).value = item.value || '';
+    $(`#setKpi${i+1}Sub`).value = item.sub || '';
+  }
+  for(let i=0; i<3; i++){
+    const item = diffs[i] || { title:'', description:'' };
+    $(`#setDiff${i+1}Title`).value = item.title || '';
+    $(`#setDiff${i+1}Description`).value = item.description || '';
+  }
+  $('#setContactName').value = contact.name || '';
+  $('#setContactRole').value = contact.role || '';
+  $('#setContactEmail').value = contact.email || '';
+  $('#setContactWhatsapp').value = contact.whatsapp || '';
+}
+$('#btnSaveSettings').addEventListener('click', ()=>{
+  const s = loadStore();
+  s.settings.company.name = $('#setName').value.trim() || 'IXOVET';
+  s.settings.company.subtitle = $('#setSubtitle').value.trim() || 'Data Room de Investimento';
+  s.settings.watermark = $('#setWatermark').value.trim() || 'Confidencial';
+  s.settings.phaseApprovalMode = $('#setPhaseApprovalMode').value || 'auto';
+  s.settings.palette.brand = $('#setBrand').value;
+  s.settings.palette.accent = $('#setAccent').value;
+  s.settings.palette.corporate = $('#setCorp').value;
+  const previousContact = s.settings.institutional?.contact || DEFAULT_INSTITUTIONAL.contact;
+  s.settings.institutional = {
+    ...(s.settings.institutional || DEFAULT_INSTITUTIONAL),
+    hero: {
+      tagline: $('#setHeroTagline').value.trim() || DEFAULT_INSTITUTIONAL.hero.tagline,
+      description: $('#setHeroDescription').value.trim() || DEFAULT_INSTITUTIONAL.hero.description
+    },
+    kpis: [1,2,3,4].map(i => ({
+      label: $(`#setKpi${i}Label`).value.trim(),
+      value: $(`#setKpi${i}Value`).value.trim(),
+      sub: $(`#setKpi${i}Sub`).value.trim()
+    })).filter(k => k.label || k.value || k.sub),
+    diferenciais: [1,2,3].map(i => ({
+      title: $(`#setDiff${i}Title`).value.trim(),
+      description: $(`#setDiff${i}Description`).value.trim()
+    })).filter(d => d.title || d.description),
+    contact: {
+      ...previousContact,
+      name: $('#setContactName').value.trim(),
+      role: $('#setContactRole').value.trim(),
+      email: $('#setContactEmail').value.trim(),
+      whatsapp: $('#setContactWhatsapp').value.trim()
+    }
+  };
+  if(saveStore(s)){ toast('Configurações salvas', 'good'); applyPalette(); }
+});
+function applyPalette(){
+  const s = loadStore();
+  document.documentElement.style.setProperty('--brand', s.settings.palette.brand);
+  document.documentElement.style.setProperty('--accent', s.settings.palette.accent);
+  document.documentElement.style.setProperty('--corp', s.settings.palette.corporate);
+}
+
+/* ---------- TOPBAR ACTIONS ---------- */
+$('#btnExport').addEventListener('click', ()=>{
+  const s = loadStore();
+  const blob = new Blob([JSON.stringify(s, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  const stamp = new Date().toISOString().slice(0,19).replace(/[:T]/g,'-');
+  a.href = URL.createObjectURL(blob);
+  a.download = `ixovet_dataroom_backup_${stamp}.json`;
+  document.body.appendChild(a); a.click(); a.remove();
+  toast('Backup exportado', 'good');
+});
+$('#btnImport').addEventListener('click', ()=> $('#importFile').click());
+$('#importFile').addEventListener('change', async (e)=>{
+  const f = e.target.files?.[0];
+  if(!f) return;
+  try{
+    const txt = await f.text();
+    const obj = JSON.parse(txt);
+    if(!obj || !obj.version){ throw new Error('JSON inválido'); }
+    if(!confirm('Isto substituirá todo o conteúdo atual do data room. Continuar?')) return;
+    localStorage.setItem(STORE_KEY, JSON.stringify(obj));
+    renderDashboard(); renderProspects(); renderDocs(); renderInvestors(); renderEvents(); renderNDA(); renderSettings();
+    applyPalette();
+    toast('Backup importado', 'good');
+  }catch(err){
+    toast('Falha ao importar: '+err.message, 'bad', 5000);
+  }finally{
+    e.target.value = '';
+  }
+});
+$('#btnReset').addEventListener('click', ()=>{
+  confirmAction(
+    'Limpar todo o data room',
+    'Esta ação remove TODOS os dados (relacionamentos, documentos, investidores, sessões, eventos, configurações) deste navegador. Isto não pode ser desfeito. Recomenda-se exportar antes.',
+    ()=>{
+      localStorage.removeItem(STORE_KEY);
+      renderDashboard(); renderProspects(); renderDocs(); renderInvestors(); renderEvents(); renderNDA(); renderSettings();
+      applyPalette();
+      toast('Data room reiniciado', 'warn');
+    }
+  );
+});
+$('#btnOpenInvestor').addEventListener('click', ()=>{
+  // tenta abrir o arquivo do investidor na mesma pasta
+  window.open('index.html', '_blank', 'noopener');
+});
+
+/* ---------- Confirm modal helper ---------- */
+function confirmAction(title, msg, onYes){
+  $('#confirmTitle').textContent = title;
+  $('#confirmMsg').textContent = msg;
+  openModal('modalConfirm');
+  const handler = ()=>{
+    closeModal('modalConfirm');
+    $('#btnConfirmYes').removeEventListener('click', handler);
+    onYes();
+  };
+  $('#btnConfirmYes').addEventListener('click', handler);
+}
+
+/* ---------- boot ---------- */
+(function init(){
+  applyPalette();
+  renderDashboard();
+  renderProspects();
+  renderDocs();
+  renderInvestors();
+  renderEvents();
+  renderNDA();
+  renderSettings();
+})();
+</script>
+</body>
+</html>
