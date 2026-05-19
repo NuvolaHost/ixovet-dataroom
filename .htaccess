@@ -1,6 +1,3 @@
-<Files "admin.html">
-  AuthType Basic
-  AuthName "IXOVET Data Room Admin"
-  AuthUserFile /home/ixovetdo/.htpasswds/dataroom_ixovet_admin
-  Require valid-user
-</Files>
+RewriteEngine On
+RewriteRule ^admin/?$ admin.php [L,QSA]
+RewriteRule ^admin\.html$ admin.php [L,QSA]

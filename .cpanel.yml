@@ -2,7 +2,4 @@
 deployment:
   tasks:
     - export DEPLOYPATH=/home/ixovetdo/dataroom.ixovet.com.br/
-    - /bin/mkdir -p /home/ixovetdo/.htpasswds
-    - 'printf "admin:{SHA}aZ+7Pr3wUZqKx5G6sq+qd+A5zKE=\n" > /home/ixovetdo/.htpasswds/dataroom_ixovet_admin'
-    - /bin/chmod 640 /home/ixovetdo/.htpasswds/dataroom_ixovet_admin
-    - /bin/cp -R index.html admin.html investidor.html .htaccess $DEPLOYPATH
+    - /bin/cp -R index.html admin.html admin.php investidor.html .htaccess $DEPLOYPATH
