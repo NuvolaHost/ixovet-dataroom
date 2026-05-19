@@ -1,0 +1,6 @@
+<Files "admin.html">
+  AuthType Basic
+  AuthName "IXOVET Data Room Admin"
+  AuthUserFile /home/ixovetdo/.htpasswds/dataroom_ixovet_admin
+  Require valid-user
+</Files>
