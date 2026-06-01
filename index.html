@@ -683,6 +683,24 @@ button,input,select,textarea{font:inherit;color:inherit}
   font-size:12.5px;
 }
 .viewer-head .vh-btn:hover{background:rgba(255,255,255,.18)}
+.viewer-floating-close{
+  position:fixed;
+  top:max(12px, env(safe-area-inset-top));
+  right:max(12px, env(safe-area-inset-right));
+  z-index:320;
+  min-width:44px;
+  min-height:44px;
+  padding:10px 14px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.30);
+  background:rgba(0,0,0,.68);
+  color:#fff;
+  font-size:13px;
+  font-weight:600;
+  box-shadow:0 10px 26px rgba(0,0,0,.35);
+  cursor:pointer;
+}
+.viewer-floating-close:hover{background:rgba(0,0,0,.82)}
 .viewer-body{
   flex:1; overflow:auto;
   padding:20px;
@@ -727,6 +745,33 @@ button,input,select,textarea{font:inherit;color:inherit}
   animation:spin 1s linear infinite;
 }
 @keyframes spin{to{transform:rotate(360deg)}}
+
+@media(max-width:720px){
+  .viewer-head{
+    padding:calc(10px + env(safe-area-inset-top)) 12px 10px;
+    gap:10px;
+    align-items:flex-start;
+  }
+  .viewer-head .vh-title{
+    flex-basis:100%;
+    padding-right:72px;
+    line-height:1.25;
+  }
+  .viewer-head .vh-controls{
+    width:100%;
+    overflow-x:auto;
+    padding-bottom:4px;
+    -webkit-overflow-scrolling:touch;
+  }
+  .viewer-head .vh-btn{min-height:38px; white-space:nowrap}
+  .viewer-body{
+    padding:12px;
+    padding-bottom:calc(18px + env(safe-area-inset-bottom));
+  }
+  .viewer-canvas-wrapper{max-width:100%; overflow:auto}
+  .viewer-canvas-wrapper canvas{max-width:none}
+  .viewer-watermark{font-size:26px; letter-spacing:.16em}
+}
 
 /* ===== Subseções dentro da fase ===== */
 .subsection{
@@ -1001,6 +1046,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 
 <!-- ===== Viewer PDF.js ===== -->
 <div id="pdfViewer" class="viewer-overlay">
+  <button class="viewer-floating-close" id="vhFloatingClose" type="button" aria-label="Sair do documento">Sair ×</button>
   <div class="viewer-head">
     <div class="vh-title">
       <span id="vhDocTitle">Documento</span>
@@ -2120,6 +2166,7 @@ function openVersions(docId){
    ==================================================== */
 let _pdfDoc = null, _pdfPage = 1, _pdfScale = 1.2, _pdfRendering = false;
 let _pdfCurrentDocId = null, _pdfCurrentVersion = null;
+let _pdfHistoryOpen = false;
 
 async function openPDFViewer(docId, versionLabel){
   const s = loadStore();
@@ -2156,6 +2203,10 @@ async function openPDFViewer(docId, versionLabel){
   $('#vhWatermark').innerHTML = `<div>${escapeHtml(wm)}<span class="ts">${escapeHtml(ts)} · CONFIDENCIAL</span></div>`;
 
   $('#pdfViewer').classList.add('active');
+  if(!_pdfHistoryOpen){
+    history.pushState({ ixovetPdfViewer:true }, '', window.location.href);
+    _pdfHistoryOpen = true;
+  }
   $('#vhLoading').innerHTML = '<div class="spin"></div><div>Carregando documento…</div>';
   $('#vhLoading').style.display = 'flex';
   $('#vhWrap').style.display = 'none';
@@ -2207,10 +2258,20 @@ $('#vhPage').addEventListener('change', async (e)=>{
 });
 $('#vhZoomIn').addEventListener('click', async ()=>{ _pdfScale = Math.min(3, _pdfScale + 0.2); await renderPDFPage(); });
 $('#vhZoomOut').addEventListener('click', async ()=>{ _pdfScale = Math.max(0.4, _pdfScale - 0.2); await renderPDFPage(); });
-$('#vhClose').addEventListener('click', ()=>{
+function closePDFViewer(syncHistory = true){
   $('#pdfViewer').classList.remove('active');
   _pdfDoc = null;
-});
+  _pdfCurrentDocId = null;
+  _pdfCurrentVersion = null;
+  if(_pdfHistoryOpen && syncHistory && history.state?.ixovetPdfViewer){
+    _pdfHistoryOpen = false;
+    history.back();
+    return;
+  }
+  _pdfHistoryOpen = false;
+}
+$('#vhClose').addEventListener('click', closePDFViewer);
+$('#vhFloatingClose').addEventListener('click', closePDFViewer);
 $('#vhDownload').addEventListener('click', ()=>{
   if(_pdfCurrentDocId) downloadDoc(_pdfCurrentDocId, _pdfCurrentVersion);
 });
@@ -2221,8 +2282,11 @@ document.addEventListener('keydown', e => {
       e.preventDefault();
       alert('Impressão desabilitada para visualização confidencial.');
     }
-    if(e.key === 'Escape'){ $('#pdfViewer').classList.remove('active'); _pdfDoc = null; }
+    if(e.key === 'Escape') closePDFViewer();
   }
+});
+window.addEventListener('popstate', () => {
+  if($('#pdfViewer').classList.contains('active')) closePDFViewer(false);
 });
 
 /* fechar modais */
