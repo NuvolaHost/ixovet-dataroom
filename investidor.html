@@ -1277,44 +1277,74 @@ function defaultStore(){
     documents:[], investors:[], sessions:[], events:[]
   };
 }
-function loadStore(){
-  try{
-    const raw = localStorage.getItem(STORE_KEY);
-    if(!raw) return defaultStore();
-    const parsed = JSON.parse(raw);
-    const def = defaultStore();
-    const ps = parsed.settings || {};
-    const merged = { ...def, ...parsed,
-      settings:{ ...def.settings, ...ps,
-        company:{ ...def.settings.company, ...(ps.company||{}) },
-        palette:{ ...def.settings.palette, ...(ps.palette||{}) },
-        institutional: ps.institutional || def.settings.institutional,
-        phases: (ps.phases && ps.phases.length) ? ps.phases : def.settings.phases
-      },
-      nda:{ ...def.nda, ...(parsed.nda||{}) },
-      documents:parsed.documents||[], investors:parsed.investors||[],
-      sessions:parsed.sessions||[], events:parsed.events||[]
-    };
-    merged.investors.forEach(i => {
-      if(i.currentPhase==null) i.currentPhase = 1;
-      if(!Array.isArray(i.phaseHistory)) i.phaseHistory = [];
-      if(!Array.isArray(i.phaseRequests)) i.phaseRequests = [];
-    });
-    merged.documents.forEach((d, idx) => {
-      if(d.phase==null) d.phase = 1;
-      if(d.viewOnly==null) d.viewOnly = false;
-      if(d.sectionId===undefined) d.sectionId = null;
-      if(d.order==null) d.order = idx + 1;
-    });
-    // garantir defaults de fase em bases criadas por versões anteriores
-    normalizePhaseDefaults(merged.settings);
-    return merged;
-  }catch(e){
-    console.warn('Store inválido, recriando.', e);
-    return defaultStore();
-  }
+const STORE_API_URL = '/api/store';
+function normalizeStore(parsed){
+  const def = defaultStore();
+  const ps = parsed?.settings || {};
+  const merged = { ...def, ...(parsed||{}),
+    settings:{ ...def.settings, ...ps,
+      company:{ ...def.settings.company, ...(ps.company||{}) },
+      palette:{ ...def.settings.palette, ...(ps.palette||{}) },
+      institutional: ps.institutional || def.settings.institutional,
+      phases: (ps.phases && ps.phases.length) ? ps.phases : def.settings.phases
+    },
+    nda:{ ...def.nda, ...((parsed||{}).nda||{}) },
+    documents:(parsed||{}).documents||[], investors:(parsed||{}).investors||[],
+    sessions:(parsed||{}).sessions||[], events:(parsed||{}).events||[]
+  };
+  merged.investors.forEach(i => {
+    if(i.currentPhase==null) i.currentPhase = 1;
+    if(!Array.isArray(i.phaseHistory)) i.phaseHistory = [];
+    if(!Array.isArray(i.phaseRequests)) i.phaseRequests = [];
+  });
+  merged.documents.forEach((d, idx) => {
+    if(d.phase==null) d.phase = 1;
+    if(d.viewOnly==null) d.viewOnly = false;
+    if(d.sectionId===undefined) d.sectionId = null;
+    if(d.order==null) d.order = idx + 1;
+  });
+  normalizePhaseDefaults(merged.settings);
+  return merged;
 }
-function saveStore(s){ localStorage.setItem(STORE_KEY, JSON.stringify(s)); }
+function fetchStoreFromServer(){
+  try{
+    const xhr = new XMLHttpRequest();
+    xhr.open('GET', STORE_API_URL, false);
+    xhr.send();
+    if(xhr.status === 200){
+      const data = JSON.parse(xhr.responseText || '{}');
+      return data && data.store ? normalizeStore(data.store) : null;
+    }
+  }catch(e){ console.warn('Falha ao carregar store do servidor.', e); }
+  return null;
+}
+function loadStore(){
+  if(window.__IXOStoreCache) return window.__IXOStoreCache;
+  let selected = fetchStoreFromServer();
+  if(!selected){
+    try{
+      const raw = localStorage.getItem(STORE_KEY);
+      selected = raw ? normalizeStore(JSON.parse(raw)) : defaultStore();
+    }catch(e){
+      console.warn('Store invalido, recriando.', e);
+      selected = defaultStore();
+    }
+  }
+  window.__IXOStoreCache = selected;
+  return selected;
+}
+function saveStore(s){
+  window.__IXOStoreCache = s;
+  try{ localStorage.setItem(STORE_KEY, JSON.stringify(s)); }catch(_){}
+  try{
+    fetch(STORE_API_URL, {
+      method:'PUT',
+      credentials:'same-origin',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ store:s })
+    }).catch(err => console.error('Erro ao salvar no servidor.', err));
+  }catch(e){ console.error('Erro ao salvar no servidor.', e); }
+}
 function pushEvent(s, evt){
   evt.id = evt.id || uid('evt');
   evt.at = evt.at || new Date().toISOString();

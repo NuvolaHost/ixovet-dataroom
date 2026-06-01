@@ -481,13 +481,13 @@ button,input,select,textarea{font:inherit;color:inherit}
     <div class="section-card">
       <div class="section-head">
         <h3>Uso de armazenamento</h3>
-        <div class="sub">localStorage do navegador (limite típico 5–10 MB)</div>
+        <div class="sub">Persistência no servidor compartilhada entre administradores e investidores.</div>
       </div>
       <div class="section-body">
         <div id="usageText" class="muted" style="font-size:13.5px"></div>
         <div class="usage-bar"><div id="usageBar" style="width:0%"></div></div>
         <div style="margin-top:8px; font-size:12.5px; color:var(--muted)">
-          Para arquivos grandes (PDFs &gt; 1 MB), considere apontar para uma URL externa em vez de subir base64. Suba grandes lotes em pacotes.
+          Para arquivos grandes (PDFs &gt; 5 MB), considere apontar para uma URL externa em vez de salvar o arquivo embutido no JSON do servidor.
         </div>
       </div>
     </div>
@@ -1288,49 +1288,95 @@ function defaultStore(){
     documents:[], prospects:[], investors:[], sessions:[], events:[]
   };
 }
-function loadStore(){
+const STORE_API_URL = '/api/store';
+function normalizeStore(parsed){
+  const def = defaultStore();
+  const ps = parsed?.settings || {};
+  const merged = { ...def, ...(parsed||{}),
+    settings:{ ...def.settings, ...ps,
+      company:{ ...def.settings.company, ...(ps.company||{}) },
+      palette:{ ...def.settings.palette, ...(ps.palette||{}) },
+      institutional: ps.institutional || def.settings.institutional,
+      phases: (ps.phases && ps.phases.length) ? ps.phases : def.settings.phases
+    },
+    nda:{ ...def.nda, ...((parsed||{}).nda||{}) },
+    documents:(parsed||{}).documents||[], prospects:(parsed||{}).prospects||[], investors:(parsed||{}).investors||[],
+    sessions:(parsed||{}).sessions||[], events:(parsed||{}).events||[]
+  };
+  merged.prospects.forEach(normalizeProspect);
+  merged.investors.forEach(i => {
+    if(i.currentPhase==null) i.currentPhase = 1;
+    if(!Array.isArray(i.phaseHistory)) i.phaseHistory = [];
+    if(!Array.isArray(i.phaseRequests)) i.phaseRequests = [];
+  });
+  merged.documents.forEach((d, idx) => {
+    if(d.phase==null) d.phase = 1;
+    if(d.viewOnly==null) d.viewOnly = false;
+    if(d.sectionId===undefined) d.sectionId = null;
+    if(d.order==null) d.order = idx + 1;
+  });
+  normalizePhaseDefaults(merged.settings);
+  return merged;
+}
+function storeHasUserData(s){
+  return !!(s && (
+    (s.documents||[]).length ||
+    (s.prospects||[]).length ||
+    (s.investors||[]).length ||
+    (s.sessions||[]).length ||
+    (s.events||[]).length
+  ));
+}
+function fetchStoreFromServer(){
+  try{
+    const xhr = new XMLHttpRequest();
+    xhr.open('GET', STORE_API_URL, false);
+    xhr.send();
+    if(xhr.status === 200){
+      const data = JSON.parse(xhr.responseText || '{}');
+      return data && data.store ? normalizeStore(data.store) : null;
+    }
+  }catch(e){ console.warn('Falha ao carregar store do servidor.', e); }
+  return null;
+}
+function loadLocalStoreBackup(){
   try{
     const raw = localStorage.getItem(STORE_KEY);
-    if(!raw) return defaultStore();
-    const parsed = JSON.parse(raw);
-    const def = defaultStore();
-    const ps = parsed.settings || {};
-    const merged = { ...def, ...parsed,
-      settings:{ ...def.settings, ...ps,
-        company:{ ...def.settings.company, ...(ps.company||{}) },
-        palette:{ ...def.settings.palette, ...(ps.palette||{}) },
-        institutional: ps.institutional || def.settings.institutional,
-        phases: (ps.phases && ps.phases.length) ? ps.phases : def.settings.phases
-      },
-      nda:{ ...def.nda, ...(parsed.nda||{}) },
-      documents:parsed.documents||[], prospects:parsed.prospects||[], investors:parsed.investors||[],
-      sessions:parsed.sessions||[], events:parsed.events||[]
-    };
-    merged.prospects.forEach(normalizeProspect);
-    merged.investors.forEach(i => {
-      if(i.currentPhase==null) i.currentPhase = 1;
-      if(!Array.isArray(i.phaseHistory)) i.phaseHistory = [];
-      if(!Array.isArray(i.phaseRequests)) i.phaseRequests = [];
-    });
-    merged.documents.forEach((d, idx) => {
-      if(d.phase==null) d.phase = 1;
-      if(d.viewOnly==null) d.viewOnly = false;
-      if(d.sectionId===undefined) d.sectionId = null;
-      if(d.order==null) d.order = idx + 1;
-    });
-    normalizePhaseDefaults(merged.settings);
-    return merged;
+    return raw ? normalizeStore(JSON.parse(raw)) : null;
   }catch(e){
-    console.warn('Store inválido, recriando.', e);
-    return defaultStore();
+    console.warn('Backup local invalido.', e);
+    return null;
   }
 }
+function loadStore(){
+  if(window.__IXOStoreCache) return window.__IXOStoreCache;
+  const serverStore = fetchStoreFromServer();
+  const localBackup = loadLocalStoreBackup();
+  let selected = serverStore || localBackup || defaultStore();
+
+  if(localBackup && (!serverStore || (!storeHasUserData(serverStore) && storeHasUserData(localBackup)))){
+    selected = localBackup;
+    window.__IXOStoreCache = selected;
+    saveStore(selected);
+    return selected;
+  }
+
+  window.__IXOStoreCache = selected;
+  return selected;
+}
 function saveStore(s){
+  window.__IXOStoreCache = s;
+  try{ localStorage.setItem(STORE_KEY, JSON.stringify(s)); }catch(_){}
   try{
-    localStorage.setItem(STORE_KEY, JSON.stringify(s));
+    fetch(STORE_API_URL, {
+      method:'PUT',
+      credentials:'same-origin',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ store:s })
+    }).catch(err => console.error('Erro ao salvar no servidor.', err));
     return true;
   }catch(e){
-    toast('Erro ao salvar (localStorage cheio?). Considere usar URL externa para arquivos grandes.', 'bad', 6000);
+    toast('Erro ao salvar no servidor.', 'bad', 6000);
     console.error(e);
     return false;
   }
@@ -1432,10 +1478,10 @@ function renderDashboard(){
 
   // Uso de armazenamento
   let bytes;
-  try{ bytes = new Blob([localStorage.getItem(STORE_KEY) || '']).size; }catch(_){ bytes = (localStorage.getItem(STORE_KEY)||'').length; }
-  const limit = 5*1024*1024; // estimativa conservadora 5MB
+  try{ bytes = new Blob([JSON.stringify(s)]).size; }catch(_){ bytes = JSON.stringify(s).length; }
+  const limit = 25*1024*1024; // referência conservadora para manter o JSON ágil no servidor
   const pct = Math.min(100, (bytes/limit)*100);
-  $('#usageText').textContent = `Uso atual: ${fmtSize(bytes)} de ~${fmtSize(limit)} (estimado).`;
+  $('#usageText').textContent = `Store no servidor: ${fmtSize(bytes)} de ~${fmtSize(limit)} recomendado.`;
   const bar = $('#usageBar');
   bar.style.width = pct.toFixed(1)+'%';
   bar.style.background = pct>80 ? 'var(--bad)' : (pct>50 ? 'var(--warn)' : 'var(--brand)');
@@ -1754,7 +1800,7 @@ $('#btnAddVersion').addEventListener('click', async ()=>{
   if(!versionLabel){ toast('Informe o rótulo da versão', 'bad'); return; }
   if(!file){ toast('Escolha um arquivo, ou use "Versão por URL externa"', 'warn'); return; }
   if(file.size > 4*1024*1024){
-    if(!confirm(`O arquivo tem ${fmtSize(file.size)}. Arquivos grandes podem estourar o limite do localStorage. Continuar mesmo assim?`)) return;
+    if(!confirm(`O arquivo tem ${fmtSize(file.size)}. Arquivos grandes deixam o JSON do servidor pesado. Continuar mesmo assim?`)) return;
   }
   const dataUrl = await readAsDataURL(file);
   pendingNewVersions.push({
@@ -1823,7 +1869,7 @@ async function autoCommitPendingFileIfAny(){
   if(!file) return false;
   if(!versionLabel){ toast('Informe o rótulo da versão antes de salvar', 'bad', 4000); return 'error'; }
   if(file.size > 4*1024*1024){
-    if(!confirm(`O arquivo tem ${fmtSize(file.size)}. Arquivos grandes podem estourar o limite do localStorage. Continuar mesmo assim?`)) return 'error';
+    if(!confirm(`O arquivo tem ${fmtSize(file.size)}. Arquivos grandes deixam o JSON do servidor pesado. Continuar mesmo assim?`)) return 'error';
   }
   const dataUrl = await readAsDataURL(file);
   pendingNewVersions.push({
@@ -2647,7 +2693,8 @@ $('#importFile').addEventListener('change', async (e)=>{
     const obj = JSON.parse(txt);
     if(!obj || !obj.version){ throw new Error('JSON inválido'); }
     if(!confirm('Isto substituirá todo o conteúdo atual do data room. Continuar?')) return;
-    localStorage.setItem(STORE_KEY, JSON.stringify(obj));
+    window.__IXOStoreCache = obj;
+    saveStore(obj);
     renderDashboard(); renderProspects(); renderDocs(); renderInvestors(); renderEvents(); renderNDA(); renderSettings();
     applyPalette();
     toast('Backup importado', 'good');
@@ -2662,7 +2709,9 @@ $('#btnReset').addEventListener('click', ()=>{
     'Limpar todo o data room',
     'Esta ação remove TODOS os dados (relacionamentos, documentos, investidores, sessões, eventos, configurações) deste navegador. Isto não pode ser desfeito. Recomenda-se exportar antes.',
     ()=>{
-      localStorage.removeItem(STORE_KEY);
+      window.__IXOStoreCache = defaultStore();
+      try{ localStorage.removeItem(STORE_KEY); }catch(_){}
+      fetch(STORE_API_URL, { method:'DELETE', credentials:'same-origin' }).catch(()=>{});
       renderDashboard(); renderProspects(); renderDocs(); renderInvestors(); renderEvents(); renderNDA(); renderSettings();
       applyPalette();
       toast('Data room reiniciado', 'warn');
