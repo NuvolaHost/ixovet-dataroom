@@ -1172,7 +1172,10 @@ function maskWhats(w){
   if(digits.length<6) return w;
   return w.slice(0,-4).replace(/\d/g,'•') + w.slice(-4);
 }
-function whatsKey(w){ return (w||'').replace(/\D/g,''); }
+function whatsKey(w){
+  const digits = (w||'').replace(/\D/g,'');
+  return digits.length > 11 && digits.startsWith('55') ? digits.slice(2) : digits;
+}
 function getSectionOrder(settings, phaseId, sectionId){
   if(!sectionId) return -1;
   const phase = (settings.phases||[]).find(p => p.id===phaseId);

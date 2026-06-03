@@ -1145,6 +1145,10 @@ function escapeHtml(str){
   if(str==null) return '';
   return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
+function whatsKey(w){
+  const digits = (w||'').replace(/\D/g,'');
+  return digits.length > 11 && digits.startsWith('55') ? digits.slice(2) : digits;
+}
 function getSectionOrder(settings, phaseId, sectionId){
   if(!sectionId) return -1;
   const phase = (settings.phases||[]).find(p => p.id===phaseId);
@@ -1368,12 +1372,20 @@ function saveStore(s){
   window.__IXOStoreCache = s;
   try{ localStorage.setItem(STORE_KEY, JSON.stringify(s)); }catch(_){}
   try{
-    fetch(STORE_API_URL, {
-      method:'PUT',
-      credentials:'same-origin',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ store:s })
-    }).catch(err => console.error('Erro ao salvar no servidor.', err));
+    const xhr = new XMLHttpRequest();
+    xhr.open('PUT', STORE_API_URL, false);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.send(JSON.stringify({ store:s }));
+    if(xhr.status < 200 || xhr.status >= 300){
+      let detail = '';
+      try{
+        const data = JSON.parse(xhr.responseText || '{}');
+        if(data.error) detail = ` (${data.error})`;
+      }catch(_){}
+      toast(`Erro ao salvar no servidor${detail}. Mantive uma cópia local, mas a versão pública pode não ter sido atualizada.`, 'bad', 8000);
+      console.error('Erro ao salvar no servidor.', xhr.status, xhr.responseText);
+      return false;
+    }
     return true;
   }catch(e){
     toast('Erro ao salvar no servidor.', 'bad', 6000);
@@ -2203,10 +2215,10 @@ function convertProspectToInvestor(id){
     `Criar cadastro de investidor para ${p.name} e marcar este relacionamento como convertido?`,
     ()=>{
       const now = new Date().toISOString();
-      const cleanWhats = (p.whatsapp||'').replace(/\D/g,'');
+      const cleanWhats = whatsKey(p.whatsapp);
       let inv = null;
       if(p.email) inv = s.investors.find(i => (i.email||'').toLowerCase().trim() === p.email.toLowerCase().trim());
-      if(!inv && cleanWhats) inv = s.investors.find(i => (i.whatsapp||'').replace(/\D/g,'') === cleanWhats);
+      if(!inv && cleanWhats) inv = s.investors.find(i => whatsKey(i.whatsapp) === cleanWhats);
       if(!inv){
         inv = { id: uid('inv'), createdAt: now, source:'pipeline', totalSessions:0, currentPhase:1, phaseHistory:[], phaseRequests:[] };
         s.investors.push(inv);
@@ -2452,14 +2464,14 @@ function reconcileSessionsToInvestors(s){
 
   ordered.forEach(session => {
     const emailKey = (session.email||'').toLowerCase().trim();
-    const whatsKey = (session.whatsapp||'').replace(/\D/g,'');
+    const sessionWhatsKey = whatsKey(session.whatsapp);
     const nameKey  = (session.name||'').toLowerCase().trim();
     const compKey  = (session.company||'').toLowerCase().trim();
     if(!nameKey) return;
 
     let inv = null;
     if(emailKey) inv = s.investors.find(i => (i.email||'').toLowerCase().trim() === emailKey);
-    if(!inv && whatsKey) inv = s.investors.find(i => (i.whatsapp||'').replace(/\D/g,'') === whatsKey);
+    if(!inv && sessionWhatsKey) inv = s.investors.find(i => whatsKey(i.whatsapp) === sessionWhatsKey);
     if(!inv && nameKey && compKey){
       inv = s.investors.find(i =>
         (i.name||'').toLowerCase().trim() === nameKey &&
@@ -2693,8 +2705,9 @@ $('#importFile').addEventListener('change', async (e)=>{
     const obj = JSON.parse(txt);
     if(!obj || !obj.version){ throw new Error('JSON inválido'); }
     if(!confirm('Isto substituirá todo o conteúdo atual do data room. Continuar?')) return;
-    window.__IXOStoreCache = obj;
-    saveStore(obj);
+    const imported = normalizeStore(obj);
+    window.__IXOStoreCache = imported;
+    if(!saveStore(imported)) return;
     renderDashboard(); renderProspects(); renderDocs(); renderInvestors(); renderEvents(); renderNDA(); renderSettings();
     applyPalette();
     toast('Backup importado', 'good');
