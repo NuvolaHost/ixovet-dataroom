@@ -53,6 +53,37 @@ function extension_from_name(string $name): string
     return preg_match('/^[a-z0-9]{1,12}$/', $ext) ? $ext : 'bin';
 }
 
+function mime_from_extension(string $name, string $fallback = 'application/octet-stream'): string
+{
+    $ext = extension_from_name($name);
+    $types = [
+        'pdf' => 'application/pdf',
+        'doc' => 'application/msword',
+        'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'xls' => 'application/vnd.ms-excel',
+        'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'ppt' => 'application/vnd.ms-powerpoint',
+        'pptx' => 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+        'txt' => 'text/plain',
+        'csv' => 'text/csv',
+        'png' => 'image/png',
+        'jpg' => 'image/jpeg',
+        'jpeg' => 'image/jpeg',
+    ];
+    return $types[$ext] ?? $fallback;
+}
+
+function detect_mime(string $path, string $fallbackName = ''): string
+{
+    if (function_exists('mime_content_type')) {
+        $mime = mime_content_type($path);
+        if (is_string($mime) && $mime !== '') {
+            return $mime;
+        }
+    }
+    return mime_from_extension($fallbackName !== '' ? $fallbackName : $path);
+}
+
 function read_store(): ?array
 {
     $path = store_path();
@@ -165,7 +196,7 @@ if ($action === 'file') {
         exit;
     }
 
-    $mime = mime_content_type($path) ?: 'application/octet-stream';
+    $mime = detect_mime($path, $id);
     header('Content-Type: ' . $mime);
     header('Content-Length: ' . (string)filesize($path));
     header('Content-Disposition: inline; filename="' . basename($id) . '"');
@@ -220,7 +251,7 @@ if ($action === 'upload') {
     }
     chmod($target, 0640);
 
-    $mime = mime_content_type($target) ?: ((string)($file['type'] ?? 'application/octet-stream'));
+    $mime = detect_mime($target, $originalName);
     echo json_encode([
         'ok' => true,
         'fileId' => $fileId,
