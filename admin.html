@@ -1293,6 +1293,7 @@ function defaultStore(){
   };
 }
 const STORE_API_URL = '/api/store';
+const STORE_UPLOAD_URL = '/api/upload';
 function normalizeStore(parsed){
   const def = defaultStore();
   const ps = parsed?.settings || {};
@@ -1805,23 +1806,45 @@ function updateFilePreview(){
   $('#fileDrop').classList.add('has-file');
 }
 
+async function uploadVersionFile(file){
+  const form = new FormData();
+  form.append('file', file, file.name);
+  const response = await fetch(STORE_UPLOAD_URL, {
+    method:'POST',
+    credentials:'same-origin',
+    body:form
+  });
+  let data = null;
+  try{ data = await response.json(); }catch(_){}
+  if(!response.ok || !data?.ok){
+    const detail = data?.error ? ` (${data.error})` : '';
+    throw new Error(`Falha ao enviar arquivo ao servidor${detail}.`);
+  }
+  return data;
+}
+
 $('#btnAddVersion').addEventListener('click', async ()=>{
   const file = $('#newVersionFile').files?.[0];
   const versionLabel = $('#newVersion').value.trim();
   const notes = $('#newVersionNotes').value.trim();
   if(!versionLabel){ toast('Informe o rótulo da versão', 'bad'); return; }
   if(!file){ toast('Escolha um arquivo, ou use "Versão por URL externa"', 'warn'); return; }
-  if(file.size > 4*1024*1024){
-    if(!confirm(`O arquivo tem ${fmtSize(file.size)}. Arquivos grandes deixam o JSON do servidor pesado. Continuar mesmo assim?`)) return;
+  let uploaded;
+  try{
+    uploaded = await uploadVersionFile(file);
+  }catch(err){
+    toast(err.message, 'bad', 8000);
+    return;
   }
-  const dataUrl = await readAsDataURL(file);
   pendingNewVersions.push({
     version: versionLabel,
-    filename: file.name,
-    mimeType: file.type,
-    size: file.size,
-    data: dataUrl,
-    url: null,
+    filename: uploaded.filename || file.name,
+    mimeType: uploaded.mimeType || file.type,
+    size: uploaded.size || file.size,
+    data: null,
+    url: uploaded.url,
+    fileId: uploaded.fileId,
+    storage: 'server',
     publishedAt: new Date().toISOString(),
     notes,
     __pending: true
@@ -1880,17 +1903,22 @@ async function autoCommitPendingFileIfAny(){
   const versionLabel = $('#newVersion').value.trim();
   if(!file) return false;
   if(!versionLabel){ toast('Informe o rótulo da versão antes de salvar', 'bad', 4000); return 'error'; }
-  if(file.size > 4*1024*1024){
-    if(!confirm(`O arquivo tem ${fmtSize(file.size)}. Arquivos grandes deixam o JSON do servidor pesado. Continuar mesmo assim?`)) return 'error';
+  let uploaded;
+  try{
+    uploaded = await uploadVersionFile(file);
+  }catch(err){
+    toast(err.message, 'bad', 8000);
+    return 'error';
   }
-  const dataUrl = await readAsDataURL(file);
   pendingNewVersions.push({
     version: versionLabel,
-    filename: file.name,
-    mimeType: file.type,
-    size: file.size,
-    data: dataUrl,
-    url: null,
+    filename: uploaded.filename || file.name,
+    mimeType: uploaded.mimeType || file.type,
+    size: uploaded.size || file.size,
+    data: null,
+    url: uploaded.url,
+    fileId: uploaded.fileId,
+    storage: 'server',
     publishedAt: new Date().toISOString(),
     notes: $('#newVersionNotes').value.trim()
   });

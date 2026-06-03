@@ -33,6 +33,26 @@ function store_path(): string
     return store_dir() . DIRECTORY_SEPARATOR . 'store.json';
 }
 
+function files_dir(): string
+{
+    $dir = store_dir() . DIRECTORY_SEPARATOR . 'files';
+    if (!is_dir($dir)) {
+        mkdir($dir, 0750, true);
+    }
+    return $dir;
+}
+
+function safe_file_id(string $id): string
+{
+    return preg_replace('/[^a-zA-Z0-9._-]/', '', $id);
+}
+
+function extension_from_name(string $name): string
+{
+    $ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
+    return preg_match('/^[a-z0-9]{1,12}$/', $ext) ? $ext : 'bin';
+}
+
 function read_store(): ?array
 {
     $path = store_path();
@@ -118,17 +138,99 @@ function merge_public_write(?array $current, array $incoming): array
     return $incoming;
 }
 
-header('Content-Type: application/json; charset=utf-8');
-header('Cache-Control: no-store, private');
-
 $action = $_GET['action'] ?? 'store';
-if ($action !== 'store') {
+if (!in_array($action, ['store', 'upload', 'file'], true)) {
     http_response_code(404);
+    header('Content-Type: application/json; charset=utf-8');
     echo json_encode(['error' => 'not_found']);
     exit;
 }
 
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+
+if ($action === 'file') {
+    $id = safe_file_id((string)($_GET['id'] ?? ''));
+    if ($id === '') {
+        http_response_code(400);
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode(['error' => 'missing_file_id']);
+        exit;
+    }
+
+    $path = files_dir() . DIRECTORY_SEPARATOR . $id;
+    if (!is_file($path)) {
+        http_response_code(404);
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode(['error' => 'file_not_found']);
+        exit;
+    }
+
+    $mime = mime_content_type($path) ?: 'application/octet-stream';
+    header('Content-Type: ' . $mime);
+    header('Content-Length: ' . (string)filesize($path));
+    header('Content-Disposition: inline; filename="' . basename($id) . '"');
+    header('Cache-Control: private, max-age=0, must-revalidate');
+    readfile($path);
+    exit;
+}
+
+header('Content-Type: application/json; charset=utf-8');
+header('Cache-Control: no-store, private');
+
+if ($action === 'upload') {
+    if (!is_admin()) {
+        http_response_code(401);
+        echo json_encode(['error' => 'unauthorized']);
+        exit;
+    }
+    if ($method !== 'POST') {
+        http_response_code(405);
+        echo json_encode(['error' => 'method_not_allowed']);
+        exit;
+    }
+    if (empty($_FILES['file']) || !is_array($_FILES['file'])) {
+        http_response_code(400);
+        echo json_encode(['error' => 'missing_file']);
+        exit;
+    }
+
+    $file = $_FILES['file'];
+    if (($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
+        http_response_code(400);
+        echo json_encode(['error' => 'upload_failed', 'code' => (int)$file['error']]);
+        exit;
+    }
+
+    $originalName = (string)($file['name'] ?? 'arquivo.bin');
+    $tmpName = (string)($file['tmp_name'] ?? '');
+    $size = (int)($file['size'] ?? 0);
+    if ($tmpName === '' || !is_uploaded_file($tmpName) || $size <= 0) {
+        http_response_code(400);
+        echo json_encode(['error' => 'invalid_upload']);
+        exit;
+    }
+
+    $ext = extension_from_name($originalName);
+    $fileId = 'file_' . bin2hex(random_bytes(16)) . '.' . $ext;
+    $target = files_dir() . DIRECTORY_SEPARATOR . $fileId;
+    if (!move_uploaded_file($tmpName, $target)) {
+        http_response_code(500);
+        echo json_encode(['error' => 'move_failed']);
+        exit;
+    }
+    chmod($target, 0640);
+
+    $mime = mime_content_type($target) ?: ((string)($file['type'] ?? 'application/octet-stream'));
+    echo json_encode([
+        'ok' => true,
+        'fileId' => $fileId,
+        'url' => '/api/file?id=' . rawurlencode($fileId),
+        'filename' => $originalName,
+        'mimeType' => $mime,
+        'size' => filesize($target),
+    ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    exit;
+}
 
 if ($method === 'GET') {
     $store = read_store();

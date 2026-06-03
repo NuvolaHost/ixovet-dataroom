@@ -1,4 +1,6 @@
 RewriteEngine On
 RewriteRule ^api/store$ api.php?action=store [L,QSA]
+RewriteRule ^api/upload$ api.php?action=upload [L,QSA]
+RewriteRule ^api/file$ api.php?action=file [L,QSA]
 RewriteRule ^admin/?$ admin.php [L,QSA]
 RewriteRule ^admin\.html$ admin.php [L,QSA]
